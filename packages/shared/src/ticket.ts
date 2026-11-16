@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { columnSchema } from "./column.js";
 import { labelSchema } from "./label.js";
+import { linkSchema } from "./link.js";
 import { memberSchema, projectSchema } from "./project.js";
 
 export const STORY_POINT_SCALE = [1, 2, 3, 5, 8, 13] as const;
@@ -70,3 +71,6 @@ export const moveTicketSchema = z.object({
   beforeTicketId: uuid.nullable().default(null),
 });
 export type MoveTicketRequest = z.infer<typeof moveTicketSchema>;
+
+export const ticketDetailSchema = ticketSchema.extend({ links: z.array(linkSchema) });
+export type TicketDetail = z.infer<typeof ticketDetailSchema>;

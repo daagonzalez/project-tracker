@@ -103,6 +103,7 @@ export const ticketLinks = pgTable("ticket_links", {
   ticketId: uuid("ticket_id").notNull().references(() => tickets.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   title: text("title"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`clock_timestamp()`),
 });
 
 export const comments = pgTable("comments", {

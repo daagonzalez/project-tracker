@@ -5,6 +5,7 @@ import { parse } from "../../errors.js";
 import { assertMember } from "../../lib/authz.js";
 import { requireUser } from "../../plugins/session.js";
 import { getColumn } from "../columns/service.js";
+import { listLinks } from "../links/service.js";
 import { moveTicket } from "./move.js";
 import * as svc from "./service.js";
 
@@ -48,7 +49,7 @@ export function registerTicketRoutes(app: FastifyInstance): void {
     const user = requireUser(req);
     const { ticketId } = parse(ticketParams, req.params);
     await authorizeTicket(user.id, ticketId);
-    return svc.getTicket(db, ticketId);
+    return { ...(await svc.getTicket(db, ticketId)), links: await listLinks(db, ticketId) };
   });
 
   app.patch("/api/tickets/:ticketId", async (req) => {

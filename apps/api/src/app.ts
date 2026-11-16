@@ -6,6 +6,8 @@ import type { Db } from "./db/client.js";
 import { AppError } from "./errors.js";
 import { registerAuthRoutes } from "./modules/auth/routes.js";
 import { registerColumnRoutes } from "./modules/columns/routes.js";
+import { registerCommentRoutes } from "./modules/comments/routes.js";
+import { registerLinkRoutes } from "./modules/links/routes.js";
 import { registerEventRoutes } from "./modules/events/routes.js";
 import { registerLabelRoutes } from "./modules/labels/routes.js";
 import { registerTicketRoutes } from "./modules/tickets/routes.js";
@@ -42,6 +44,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     registerLabelRoutes(instance);
     registerTicketRoutes(instance);
     registerEventRoutes(instance);
+    registerCommentRoutes(instance);
+    registerLinkRoutes(instance);
   });
 
   app.get("/api/health", async () => ({ status: "ok" }));
