@@ -1,0 +1,1 @@
+ALTER TABLE "ticket_links" ADD COLUMN "created_at" timestamp with time zone DEFAULT clock_timestamp() NOT NULL;

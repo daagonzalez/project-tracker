@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-tracker}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tracker}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Production-like: the single image serving /api and the built web app. Runs migrations on startup.
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tracker}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tracker}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    restart: unless-stopped
+
+  # Dev profile (`docker compose --profile dev up api-dev web-dev`): hot reload via bind mounts.
+  api-dev:
+    profiles: [dev]
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -w apps/api"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tracker}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tracker}
+      NODE_ENV: development
+      PORT: "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+  web-dev:
+    profiles: [dev]
+    image: node:22-alpine
+    working_dir: /app
+    # Waits for api-dev to finish installing (shared node_modules volume), then starts Vite.
+    command: sh -c "until [ -d node_modules/vite ]; do sleep 2; done && npm run dev -w apps/web -- --host 0.0.0.0"
+    depends_on:
+      - api-dev
+    environment:
+      API_PROXY_TARGET: http://api-dev:3000
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+volumes:
+  dbdata:
+  node_modules:
