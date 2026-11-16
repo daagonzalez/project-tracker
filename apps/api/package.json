@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fastify/helmet": "^13.2.0",
     "@tracker/shared": "*",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",

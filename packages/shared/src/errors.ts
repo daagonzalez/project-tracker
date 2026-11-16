@@ -9,6 +9,7 @@ export const errorCodes = [
   "VALIDATION",
   "CSRF",
   "RATE_LIMITED",
+  "INTERNAL",
 ] as const;
 
 export type ErrorCode = (typeof errorCodes)[number];
