@@ -1,4 +1,7 @@
 export * from "./auth.js";
 export * from "./column.js";
 export * from "./errors.js";
+export * from "./event.js";
+export * from "./label.js";
 export * from "./project.js";
+export * from "./ticket.js";

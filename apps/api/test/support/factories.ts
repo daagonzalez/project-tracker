@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Db } from "../../src/db/client.js";
-import { columns, projectMembers, projects, tickets, users } from "../../src/db/schema.js";
+import { columns, labels, projectMembers, projects, tickets, users } from "../../src/db/schema.js";
 
 let seq = 0;
 const next = () => ++seq;
@@ -61,6 +61,18 @@ export async function makeTicket(
       points: opts.points ?? null,
       archivedAt: opts.archivedAt ?? null,
     })
+    .returning();
+  return row!;
+}
+
+export async function addMember(db: Db, projectId: string, userId: string) {
+  await db.insert(projectMembers).values({ projectId, userId }).onConflictDoNothing();
+}
+
+export async function makeLabel(db: Db, opts: { projectId: string; name?: string; color?: string }) {
+  const [row] = await db
+    .insert(labels)
+    .values({ projectId: opts.projectId, name: opts.name ?? `Label ${next()}`, color: opts.color ?? "#336699" })
     .returning();
   return row!;
 }
