@@ -26,7 +26,7 @@ declare module "fastify" {
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
-  const app = Fastify({ logger: deps.config.nodeEnv === "production", bodyLimit: 1_048_576 });
+  const app = Fastify({ logger: deps.config.nodeEnv === "production", bodyLimit: 1_048_576, trustProxy: deps.config.trustProxy ?? false });
   app.decorate("deps", deps);
   const webDist = deps.config.webDistDir;
   registerErrorHandling(app, webDist ? trySpaFallback : undefined);

@@ -16,7 +16,9 @@ export function registerCsrf(app: FastifyInstance): void {
   app.addHook("onRequest", async (request) => {
     if (SAFE_METHODS.has(request.method)) return;
     const path = request.url.split("?")[0]!;
-    if (!path.startsWith("/api/") || EXEMPT_PATHS.has(path)) return;
+    // Deliberately not limited to /api/: the router decodes the path ("/%61pi/..."), so a prefix
+    // check on the raw URL could be bypassed. Non-API paths have no mutating routes anyway.
+    if (EXEMPT_PATHS.has(path)) return;
     // Unauthenticated requests are rejected by the route's own auth check.
     if (!request.auth) return;
     const header = request.headers["x-csrf-token"];

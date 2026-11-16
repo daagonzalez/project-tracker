@@ -30,7 +30,7 @@ export function registerLabelRoutes(app: FastifyInstance): void {
     const user = requireUser(req);
     const { labelId } = parse(labelParams, req.params);
     await assertMember(db, user.id, (await svc.getLabel(db, labelId)).projectId);
-    await svc.deleteLabel(db, labelId);
+    await svc.deleteLabel(db, labelId, user.id);
     return reply.status(204).send();
   });
 }

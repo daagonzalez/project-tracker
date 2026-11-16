@@ -39,6 +39,7 @@ Config comes from environment variables and the app refuses to start if a requir
 | `NODE_ENV` | no | `development` (default), `test`, `production` |
 | `PORT` | no | HTTP port, default `3000` |
 | `WEB_DIST_DIR` | no | Directory of the built web app to serve (set in the Docker image) |
+| `TRUST_PROXY` | no | Set `true` when running behind a reverse proxy you control (TLS terminator). Without it the login rate limit sees only the proxy's address; leave `false` if the app is directly exposed, since clients could forge `X-Forwarded-For` |
 | `POSTGRES_PASSWORD` | compose | Password for the local compose database |
 | `TEST_DATABASE_URL` | tests | Database used by the API test suite |
 

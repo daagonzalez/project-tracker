@@ -74,6 +74,35 @@ describe("auth", () => {
     expect(wrong.statusCode).toBe(403);
   });
 
+  it("still requires the csrf token when the /api prefix is percent-encoded", async () => {
+    const user = await makeUser(t.db);
+    const s = await loginAs(t, user);
+    const res = await t.app.inject({ method: "POST", url: "/%61pi/auth/logout", headers: { cookie: s.cookie } });
+    expect(res.statusCode).toBe(403);
+    const [still] = await t.db.select().from(sessions);
+    expect(still).toBeDefined();
+  });
+
+  it("keys the login rate limit on the forwarded client address when trustProxy is on", async () => {
+    const proxied = await createTestApp({ trustProxy: true });
+    try {
+      await createUser(proxied.db, "proxy@example.com", PASSWORD);
+      const attempt = (ip: string) =>
+        proxied.app.inject({
+          method: "POST",
+          url: "/api/auth/login",
+          headers: { "x-forwarded-for": ip },
+          payload: { email: "proxy@example.com", password: "wrong-wrong-wrong" },
+        });
+      for (let i = 0; i < 5; i++) expect((await attempt("203.0.113.1")).statusCode).toBe(401);
+      expect((await attempt("203.0.113.1")).statusCode).toBe(429);
+      // a different client behind the same proxy is not locked out
+      expect((await attempt("203.0.113.2")).statusCode).toBe(401);
+    } finally {
+      await proxied.close();
+    }
+  });
+
   it("invalidates the session on logout", async () => {
     const user = await makeUser(t.db);
     const s = await loginAs(t, user);

@@ -62,4 +62,15 @@ describe("labels", () => {
     const after = await call("GET", `/api/tickets/${ticket.id}`, o.headers);
     expect(after.json().labelIds).toEqual([]);
   });
+
+  it("records a label_removed event on each ticket that loses a deleted label", async () => {
+    const { project, o } = await setup();
+    const column = await makeColumn(t.db, { projectId: project.id });
+    const ticket = await makeTicket(t.db, { projectId: project.id, columnId: column.id });
+    const label = await makeLabel(t.db, { projectId: project.id, name: "bug" });
+    await call("PATCH", `/api/tickets/${ticket.id}`, o.headers, { labelIds: [label.id] });
+    await call("DELETE", `/api/labels/${label.id}`, o.headers);
+    const events = (await call("GET", `/api/tickets/${ticket.id}/events`, o.headers)).json() as { type: string; data: { name?: string } }[];
+    expect(events.filter((e) => e.type === "label_removed").map((e) => e.data.name)).toEqual(["bug"]);
+  });
 });

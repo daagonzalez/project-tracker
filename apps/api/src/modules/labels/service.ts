@@ -1,8 +1,9 @@
 import type { Label } from "@tracker/shared";
 import { eq } from "drizzle-orm";
 import type { Db } from "../../db/client.js";
-import { labels } from "../../db/schema.js";
+import { labels, ticketLabels } from "../../db/schema.js";
 import { AppError } from "../../errors.js";
+import { recordEvent } from "../events/record.js";
 
 type LabelRow = typeof labels.$inferSelect;
 
@@ -35,6 +36,15 @@ export async function updateLabel(db: Db, labelId: string, input: { name?: strin
   return toLabelDto(row);
 }
 
-export async function deleteLabel(db: Db, labelId: string): Promise<void> {
-  await db.delete(labels).where(eq(labels.id, labelId));
+/** Deletes a label; every ticket that carried it gets a label_removed event in the same transaction. */
+export async function deleteLabel(db: Db, labelId: string, actorId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    const [label] = await tx.select().from(labels).where(eq(labels.id, labelId));
+    if (!label) return;
+    const carriers = await tx.select({ ticketId: ticketLabels.ticketId }).from(ticketLabels).where(eq(ticketLabels.labelId, labelId));
+    for (const { ticketId } of carriers) {
+      await recordEvent(tx, { ticketId, actorId, type: "label_removed", data: { labelId, name: label.name } });
+    }
+    await tx.delete(labels).where(eq(labels.id, labelId));
+  });
 }
