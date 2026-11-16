@@ -1,4 +1,11 @@
-import { projectSchema, sessionResponseSchema, type LoginRequest, type SessionResponse } from "@tracker/shared";
+import {
+  boardSchema,
+  projectSchema,
+  sessionResponseSchema,
+  ticketSchema,
+  type LoginRequest,
+  type SessionResponse,
+} from "@tracker/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, setCsrfToken } from "./client";
 
@@ -41,6 +48,25 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: (input: { name: string }) => apiFetch("/api/projects", projectSchema, { method: "POST", body: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: projectsKey }),
+  });
+}
+
+export const boardKey = (projectId: string) => ["board", projectId] as const;
+
+/** The project's board. Polled every 30s and refetched on window focus (no live push in v1). */
+export function useBoard(projectId: string) {
+  return useQuery({
+    queryKey: boardKey(projectId),
+    queryFn: () => apiFetch(`/api/projects/${projectId}/board`, boardSchema),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useCreateTicket(projectId: string, columnId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { title: string }) => apiFetch(`/api/columns/${columnId}/tickets`, ticketSchema, { method: "POST", body: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: boardKey(projectId) }),
   });
 }
 

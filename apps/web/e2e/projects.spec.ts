@@ -1,4 +1,4 @@
-import { projectSchema, type Project } from "@tracker/shared";
+import { boardSchema, projectSchema, sessionResponseSchema, type Project } from "@tracker/shared";
 import { fixtures } from "./support/fixtures.js";
 import { respond } from "./support/mockApi.js";
 import { expect, signedIn, test } from "./support/test.js";
@@ -56,15 +56,21 @@ test("opens a project when it is clicked", async ({ page, api }) => {
   signedIn(api);
   const project = fixtures.project({ name: "Website" });
   api.on("GET", "/api/projects", respond.json(projectSchema.array(), [project]));
+  api.on("GET", `/api/projects/${project.id}/board`, respond.json(boardSchema, fixtures.board({ project })));
   await page.goto("/");
   await page.getByRole("link", { name: "Website" }).click();
   await expect(page).toHaveURL(new RegExp(`/projects/${project.id}$`));
 });
 
 test("signs out and returns to the login page", async ({ page, api }) => {
-  signedIn(api);
+  const session = fixtures.session();
+  let signedInNow = true;
+  api.on("GET", "/api/auth/me", () => (signedInNow ? respond.json(sessionResponseSchema, session) : respond.error(401, "UNAUTHENTICATED")));
   api.on("GET", "/api/projects", respond.json(projectSchema.array(), []));
-  api.on("POST", "/api/auth/logout", respond.empty());
+  api.on("POST", "/api/auth/logout", () => {
+    signedInNow = false;
+    return respond.empty();
+  });
   await page.goto("/");
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/login$/);
