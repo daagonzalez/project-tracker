@@ -1,4 +1,17 @@
-import type { Board, BoardColumn, Label, Member, Project, SessionResponse, Ticket, User } from "@tracker/shared";
+import type {
+  Board,
+  BoardColumn,
+  Comment,
+  Label,
+  Link,
+  Member,
+  Project,
+  SessionResponse,
+  Ticket,
+  TicketDetail,
+  TicketEvent,
+  User,
+} from "@tracker/shared";
 
 let n = 0;
 /** Deterministic, valid UUIDs for fixtures. */
@@ -37,6 +50,34 @@ export const fixtures = {
       updatedAt: now,
       ...overrides,
     };
+  },
+  link(overrides: Partial<Link> = {}): Link {
+    return { id: uid(), ticketId: uid(), url: "https://github.com/o/r/pull/1", title: null, ...overrides };
+  },
+  comment(overrides: Partial<Comment> = {}): Comment {
+    return {
+      id: uid(),
+      ticketId: uid(),
+      author: { id: uid(), email: "ann@example.com" },
+      body: "A comment",
+      createdAt: now,
+      updatedAt: now,
+      ...overrides,
+    };
+  },
+  event(overrides: Partial<TicketEvent> = {}): TicketEvent {
+    return {
+      id: uid(),
+      ticketId: uid(),
+      actor: { id: uid(), email: "ann@example.com" },
+      type: "created",
+      data: {},
+      createdAt: now,
+      ...overrides,
+    };
+  },
+  ticketDetail(overrides: Partial<TicketDetail> = {}): TicketDetail {
+    return { ...fixtures.ticket(), links: [], ...overrides };
   },
   column(overrides: Partial<BoardColumn> = {}): BoardColumn {
     const tickets = overrides.tickets ?? [];

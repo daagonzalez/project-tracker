@@ -1,13 +1,19 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useBoard } from "../api/hooks";
 import { DndBoard } from "../components/DndBoard";
+import { TicketPanel } from "../components/TicketPanel";
 
 export function ProjectPage() {
   const { projectId = "" } = useParams();
   const board = useBoard(projectId);
   const [notice, setNotice] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openTicketId = searchParams.get("ticket");
+
+  const openTicket = useCallback((id: string) => setSearchParams({ ticket: id }), [setSearchParams]);
+  const closeTicket = useCallback(() => setSearchParams({}), [setSearchParams]);
 
   if (board.isPending) return <p className="p-6 text-slate-600">Loading…</p>;
   if (board.isError) {
@@ -29,7 +35,8 @@ export function ProjectPage() {
           </button>
         </div>
       )}
-      <DndBoard board={board.data} onMoveError={setNotice} />
+      <DndBoard board={board.data} onMoveError={setNotice} onOpenTicket={openTicket} />
+      {openTicketId && <TicketPanel projectId={projectId} ticketId={openTicketId} board={board.data} onClose={closeTicket} />}
     </main>
   );
 }

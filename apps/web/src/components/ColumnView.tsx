@@ -7,9 +7,9 @@ import { useCreateTicket } from "../api/hooks";
 import { columnDropId } from "../board/plan";
 import { TicketCard } from "./TicketCard";
 
-type Props = { projectId: string; column: BoardColumn; labels: Label[]; members: Member[] };
+type Props = { projectId: string; column: BoardColumn; labels: Label[]; members: Member[]; onOpenTicket: (ticketId: string) => void };
 
-export function ColumnView({ projectId, column, labels, members }: Props) {
+export function ColumnView({ projectId, column, labels, members, onOpenTicket }: Props) {
   const create = useCreateTicket(projectId, column.id);
   const { setNodeRef: setDropRef } = useDroppable({ id: columnDropId(column.id) });
   const [adding, setAdding] = useState(false);
@@ -53,7 +53,7 @@ export function ColumnView({ projectId, column, labels, members }: Props) {
       <SortableContext items={column.tickets.map((t) => t.id)} strategy={verticalListSortingStrategy}>
         <div ref={setDropRef} className="min-h-12 space-y-2">
           {column.tickets.map((t) => (
-            <TicketCard key={t.id} ticket={t} labels={labels} members={members} />
+            <TicketCard key={t.id} ticket={t} labels={labels} members={members} onOpen={onOpenTicket} />
           ))}
         </div>
       </SortableContext>

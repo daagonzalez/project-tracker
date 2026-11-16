@@ -1,7 +1,11 @@
 import {
   boardSchema,
+  commentSchema,
+  linkSchema,
   projectSchema,
   sessionResponseSchema,
+  ticketDetailSchema,
+  ticketEventSchema,
   ticketSchema,
   type Board,
   type LoginRequest,
@@ -69,6 +73,92 @@ export function useCreateTicket(projectId: string, columnId: string) {
   return useMutation({
     mutationFn: (input: { title: string }) => apiFetch(`/api/columns/${columnId}/tickets`, ticketSchema, { method: "POST", body: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: boardKey(projectId) }),
+  });
+}
+
+export const ticketKey = (ticketId: string) => ["ticket", ticketId] as const;
+export const commentsKey = (ticketId: string) => ["comments", ticketId] as const;
+export const eventsKey = (ticketId: string) => ["events", ticketId] as const;
+
+export function useTicket(ticketId: string) {
+  return useQuery({ queryKey: ticketKey(ticketId), queryFn: () => apiFetch(`/api/tickets/${ticketId}`, ticketDetailSchema) });
+}
+
+export function useComments(ticketId: string) {
+  return useQuery({ queryKey: commentsKey(ticketId), queryFn: () => apiFetch(`/api/tickets/${ticketId}/comments`, commentSchema.array()) });
+}
+
+export function useEvents(ticketId: string) {
+  return useQuery({ queryKey: eventsKey(ticketId), queryFn: () => apiFetch(`/api/tickets/${ticketId}/events`, ticketEventSchema.array()) });
+}
+
+export type TicketPatch = {
+  title?: string;
+  description?: string;
+  points?: number | null;
+  assigneeId?: string | null;
+  labelIds?: string[];
+};
+
+export function usePatchTicket(projectId: string, ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: TicketPatch) => apiFetch(`/api/tickets/${ticketId}`, ticketSchema, { method: "PATCH", body: patch }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ticketKey(ticketId) }),
+        queryClient.invalidateQueries({ queryKey: eventsKey(ticketId) }),
+        queryClient.invalidateQueries({ queryKey: boardKey(projectId) }),
+      ]),
+  });
+}
+
+export function useArchiveTicket(projectId: string, ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiFetch(`/api/tickets/${ticketId}/archive`, ticketSchema, { method: "POST" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: boardKey(projectId) }),
+  });
+}
+
+export function useAddComment(ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { body: string }) => apiFetch(`/api/tickets/${ticketId}/comments`, commentSchema, { method: "POST", body: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: commentsKey(ticketId) }),
+  });
+}
+
+export function useUpdateComment(ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { id: string; body: string }) =>
+      apiFetch(`/api/comments/${input.id}`, commentSchema, { method: "PATCH", body: { body: input.body } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: commentsKey(ticketId) }),
+  });
+}
+
+export function useDeleteComment(ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (commentId: string) => apiFetch(`/api/comments/${commentId}`, null, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: commentsKey(ticketId) }),
+  });
+}
+
+export function useAddLink(ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { url: string; title: string | null }) => apiFetch(`/api/tickets/${ticketId}/links`, linkSchema, { method: "POST", body: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ticketKey(ticketId) }),
+  });
+}
+
+export function useDeleteLink(ticketId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (linkId: string) => apiFetch(`/api/links/${linkId}`, null, { method: "DELETE" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ticketKey(ticketId) }),
   });
 }
 

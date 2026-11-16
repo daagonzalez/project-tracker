@@ -6,7 +6,9 @@ import { LabelChip } from "./LabelChip";
 const initials = (email: string) => email.split("@")[0]!.slice(0, 2).toUpperCase();
 
 /** A draggable ticket. Focusable, and movable with Space + arrow keys as well as the pointer. */
-export function TicketCard({ ticket, labels, members }: { ticket: Ticket; labels: Label[]; members: Member[] }) {
+type Props = { ticket: Ticket; labels: Label[]; members: Member[]; onOpen: (ticketId: string) => void };
+
+export function TicketCard({ ticket, labels, members, onOpen }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ticket.id });
   const ticketLabels = labels.filter((l) => ticket.labelIds.includes(l.id));
   const assignee = members.find((m) => m.id === ticket.assigneeId);
@@ -17,6 +19,11 @@ export function TicketCard({ ticket, labels, members }: { ticket: Ticket; labels
       {...attributes}
       {...listeners}
       role="article" // keep the article landmark; dnd-kit would otherwise set role="button"
+      onClick={() => onOpen(ticket.id)}
+      onKeyDown={(e) => {
+        listeners?.onKeyDown?.(e);
+        if (e.key === "Enter" && !e.defaultPrevented) onOpen(ticket.id);
+      }}
       aria-label={ticket.title}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={`cursor-grab touch-none rounded-md border border-slate-200 bg-white p-3 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${

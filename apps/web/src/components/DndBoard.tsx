@@ -6,13 +6,17 @@ import { useMoveTicket } from "../api/hooks";
 import { planMove } from "../board/plan";
 import { ColumnView } from "./ColumnView";
 
-type Props = { board: Board; onMoveError: (message: string) => void };
+type Props = { board: Board; onMoveError: (message: string) => void; onOpenTicket: (ticketId: string) => void };
 
-export function DndBoard({ board, onMoveError }: Props) {
+export function DndBoard({ board, onMoveError, onOpenTicket }: Props) {
   const move = useMoveTicket(board.project.id);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    // Enter is left free to open the ticket; Space starts and drops a keyboard drag.
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+      keyboardCodes: { start: ["Space"], cancel: ["Escape"], end: ["Space"] },
+    }),
   );
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
@@ -36,7 +40,14 @@ export function DndBoard({ board, onMoveError }: Props) {
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
       <div className="flex items-start gap-4 overflow-x-auto pb-4">
         {board.columns.map((column) => (
-          <ColumnView key={column.id} projectId={board.project.id} column={column} labels={board.labels} members={board.members} />
+          <ColumnView
+            key={column.id}
+            projectId={board.project.id}
+            column={column}
+            labels={board.labels}
+            members={board.members}
+            onOpenTicket={onOpenTicket}
+          />
         ))}
       </div>
     </DndContext>
