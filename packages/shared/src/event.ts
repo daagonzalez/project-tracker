@@ -18,7 +18,7 @@ export const ticketEventSchema = z.object({
   ticketId: z.string().uuid(),
   actor: z.object({ id: z.string().uuid(), email: z.string() }),
   type: z.enum(ticketEventTypes),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
   createdAt: z.string(),
 });
 export type TicketEvent = z.infer<typeof ticketEventSchema>;

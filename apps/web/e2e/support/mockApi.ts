@@ -1,6 +1,6 @@
 import { errorBodySchema, type ErrorCode } from "@tracker/shared";
 import type { Page, Route } from "@playwright/test";
-import type { ZodType, ZodTypeDef } from "zod";
+import type { ZodType } from "zod";
 
 export type MockRequest = {
   method: string;
@@ -18,7 +18,7 @@ type Handler = MockResponse | ((req: MockRequest) => MockResponse | Promise<Mock
  * *before* it is ever served, so a mock can never drift from the real API contract.
  */
 export const respond = {
-  json<T>(schema: ZodType<T, ZodTypeDef, unknown>, data: T, status = 200): MockResponse {
+  json<T>(schema: ZodType<T, unknown>, data: T, status = 200): MockResponse {
     const result = schema.safeParse(data);
     if (!result.success) {
       throw new Error(`Mock response violates the shared schema: ${result.error.message}`);
