@@ -1,6 +1,8 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useSession } from "./api/hooks";
+import { Shell } from "./components/Shell";
 import { LoginPage } from "./pages/LoginPage";
+import { ProjectPage } from "./pages/ProjectPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 
 function RequireAuth() {
@@ -15,7 +17,10 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
-        <Route path="/" element={<ProjectsPage />} />
+        <Route element={<Shell />}>
+          <Route path="/" element={<ProjectsPage />} />
+          <Route path="/projects/:projectId" element={<ProjectPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

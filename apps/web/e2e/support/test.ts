@@ -1,5 +1,7 @@
+import { sessionResponseSchema, type SessionResponse } from "@tracker/shared";
 import { expect, test as base } from "@playwright/test";
-import { MockApi } from "./mockApi.js";
+import { fixtures } from "./fixtures.js";
+import { MockApi, respond } from "./mockApi.js";
 
 /** `api` is a network-level mock of the backend; a test fails if the UI calls anything unmocked. */
 export const test = base.extend<{ api: MockApi }>({
@@ -12,3 +14,9 @@ export const test = base.extend<{ api: MockApi }>({
 });
 
 export { expect };
+
+/** Mocks an authenticated session; returns it so tests can use the user and csrf token. */
+export function signedIn(api: MockApi, session: SessionResponse = fixtures.session()): SessionResponse {
+  api.on("GET", "/api/auth/me", respond.json(sessionResponseSchema, session));
+  return session;
+}

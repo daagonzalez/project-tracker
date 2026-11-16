@@ -1,4 +1,4 @@
-import { sessionResponseSchema, type LoginRequest, type SessionResponse } from "@tracker/shared";
+import { projectSchema, sessionResponseSchema, type LoginRequest, type SessionResponse } from "@tracker/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, setCsrfToken } from "./client";
 
@@ -27,6 +27,20 @@ export function useLogin() {
       setCsrfToken(session.csrfToken);
       queryClient.setQueryData(sessionKey, session);
     },
+  });
+}
+
+export const projectsKey = ["projects"] as const;
+
+export function useProjects() {
+  return useQuery({ queryKey: projectsKey, queryFn: () => apiFetch("/api/projects", projectSchema.array()) });
+}
+
+export function useCreateProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { name: string }) => apiFetch("/api/projects", projectSchema, { method: "POST", body: input }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: projectsKey }),
   });
 }
 
