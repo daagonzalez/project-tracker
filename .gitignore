@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.superpowers
+.claude/worktrees
+playwright-report
+test-results
+*.tsbuildinfo
