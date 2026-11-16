@@ -15,6 +15,7 @@ import { registerProjectRoutes } from "./modules/projects/routes.js";
 import { registerCsrf } from "./plugins/csrf.js";
 import { registerErrorHandling } from "./plugins/errors.js";
 import { registerSession } from "./plugins/session.js";
+import { registerStatic, trySpaFallback } from "./static.js";
 
 export type AppDeps = { db: Db; config: Config };
 
@@ -27,8 +28,10 @@ declare module "fastify" {
 export function buildApp(deps: AppDeps): FastifyInstance {
   const app = Fastify({ logger: deps.config.nodeEnv === "production", bodyLimit: 1_048_576 });
   app.decorate("deps", deps);
-  registerErrorHandling(app);
+  const webDist = deps.config.webDistDir;
+  registerErrorHandling(app, webDist ? trySpaFallback : undefined);
   void app.register(helmet);
+  if (webDist) registerStatic(app, webDist);
   void app.register(rateLimit, {
     global: false,
     hook: "preHandler", // run after body parsing so limits can key on the login email

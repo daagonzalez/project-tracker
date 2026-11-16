@@ -1,14 +1,16 @@
 import type { ErrorBody } from "@tracker/shared";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AppError } from "../errors.js";
 
 function body(code: ErrorBody["error"]["code"], message: string): ErrorBody {
   return { error: { code, message } };
 }
 
-export function registerErrorHandling(app: FastifyInstance): void {
-  app.setNotFoundHandler((_req, reply) => {
-    reply.status(404).send(body("NOT_FOUND", "Not found"));
+/** `fallback` may answer an unmatched request itself (return true), e.g. the SPA index page. */
+export function registerErrorHandling(app: FastifyInstance, fallback?: (req: FastifyRequest, reply: FastifyReply) => boolean): void {
+  app.setNotFoundHandler((req, reply) => {
+    if (fallback?.(req, reply)) return reply;
+    return reply.status(404).send(body("NOT_FOUND", "Not found"));
   });
 
   app.setErrorHandler((err: Error & { statusCode?: number }, req, reply) => {
