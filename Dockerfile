@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- build: compile the web app and bundle the API ----
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
@@ -14,7 +14,7 @@ COPY apps apps
 RUN npm run build -w apps/web && npm run build -w apps/api
 
 # ---- runtime: production dependencies + built output only ----
-FROM node:22-alpine AS runtime
+FROM node:26-alpine AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
     WEB_DIST_DIR=/app/apps/web/dist
