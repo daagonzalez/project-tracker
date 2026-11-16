@@ -120,5 +120,6 @@ export const ticketEvents = pgTable("ticket_events", {
   actorId: uuid("actor_id").notNull().references(() => users.id),
   type: text("type").notNull(),
   data: jsonb("data").notNull().default({}),
-  createdAt: createdAt(),
+  // clock_timestamp() (not now()) so events written in one transaction still order correctly
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`clock_timestamp()`),
 });
