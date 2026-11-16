@@ -1,14 +1,28 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Label, Member, Ticket } from "@tracker/shared";
 import { LabelChip } from "./LabelChip";
 
 const initials = (email: string) => email.split("@")[0]!.slice(0, 2).toUpperCase();
 
+/** A draggable ticket. Focusable, and movable with Space + arrow keys as well as the pointer. */
 export function TicketCard({ ticket, labels, members }: { ticket: Ticket; labels: Label[]; members: Member[] }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: ticket.id });
   const ticketLabels = labels.filter((l) => ticket.labelIds.includes(l.id));
   const assignee = members.find((m) => m.id === ticket.assigneeId);
 
   return (
-    <article aria-label={ticket.title} className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+    <article
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      role="article" // keep the article landmark; dnd-kit would otherwise set role="button"
+      aria-label={ticket.title}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={`cursor-grab touch-none rounded-md border border-slate-200 bg-white p-3 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
+        isDragging ? "relative z-10 opacity-80 shadow-lg" : ""
+      }`}
+    >
       <p className="text-sm font-medium">{ticket.title}</p>
       {ticketLabels.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">

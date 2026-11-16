@@ -11,7 +11,7 @@ export type MockRequest = {
   headers: Record<string, string>;
 };
 export type MockResponse = { status: number; body?: unknown };
-type Handler = MockResponse | ((req: MockRequest) => MockResponse);
+type Handler = MockResponse | ((req: MockRequest) => MockResponse | Promise<MockResponse>);
 
 /**
  * Builders for mock responses. `json` validates the payload against the shared Zod schema
@@ -89,7 +89,7 @@ export class MockApi {
       if (!match) continue;
       r.keys.forEach((key, i) => (mock.params[key] = match[i + 1]!));
       try {
-        const res = typeof r.handler === "function" ? r.handler(mock) : r.handler;
+        const res = typeof r.handler === "function" ? await r.handler(mock) : r.handler;
         await route.fulfill({
           status: res.status,
           contentType: "application/json",

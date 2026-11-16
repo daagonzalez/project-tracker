@@ -3,10 +3,12 @@ import {
   projectSchema,
   sessionResponseSchema,
   ticketSchema,
+  type Board,
   type LoginRequest,
   type SessionResponse,
 } from "@tracker/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { applyMove, type MovePlan } from "../board/plan";
 import { apiFetch, setCsrfToken } from "./client";
 
 export const sessionKey = ["session"] as const;
@@ -67,6 +69,28 @@ export function useCreateTicket(projectId: string, columnId: string) {
   return useMutation({
     mutationFn: (input: { title: string }) => apiFetch(`/api/columns/${columnId}/tickets`, ticketSchema, { method: "POST", body: input }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: boardKey(projectId) }),
+  });
+}
+
+/** Moves a ticket. The board updates optimistically and rolls back if the server rejects the move. */
+export function useMoveTicket(projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (plan: MovePlan) =>
+      apiFetch(`/api/tickets/${plan.ticketId}/move`, ticketSchema, {
+        method: "POST",
+        body: { columnId: plan.columnId, afterTicketId: plan.afterTicketId, beforeTicketId: plan.beforeTicketId },
+      }),
+    onMutate: async (plan) => {
+      await queryClient.cancelQueries({ queryKey: boardKey(projectId) });
+      const previous = queryClient.getQueryData<Board>(boardKey(projectId));
+      if (previous) queryClient.setQueryData(boardKey(projectId), applyMove(previous, plan));
+      return { previous };
+    },
+    onError: (_error, _plan, context) => {
+      if (context?.previous) queryClient.setQueryData(boardKey(projectId), context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: boardKey(projectId) }),
   });
 }
 

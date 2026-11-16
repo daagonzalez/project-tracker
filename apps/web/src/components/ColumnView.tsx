@@ -1,13 +1,17 @@
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { BoardColumn, Label, Member } from "@tracker/shared";
 import { useState, type FormEvent } from "react";
 import { ApiError } from "../api/client";
 import { useCreateTicket } from "../api/hooks";
+import { columnDropId } from "../board/plan";
 import { TicketCard } from "./TicketCard";
 
 type Props = { projectId: string; column: BoardColumn; labels: Label[]; members: Member[] };
 
 export function ColumnView({ projectId, column, labels, members }: Props) {
   const create = useCreateTicket(projectId, column.id);
+  const { setNodeRef: setDropRef } = useDroppable({ id: columnDropId(column.id) });
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
 
@@ -46,11 +50,13 @@ export function ColumnView({ projectId, column, labels, members }: Props) {
         </div>
       </header>
 
-      <div className="space-y-2">
-        {column.tickets.map((t) => (
-          <TicketCard key={t.id} ticket={t} labels={labels} members={members} />
-        ))}
-      </div>
+      <SortableContext items={column.tickets.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+        <div ref={setDropRef} className="min-h-12 space-y-2">
+          {column.tickets.map((t) => (
+            <TicketCard key={t.id} ticket={t} labels={labels} members={members} />
+          ))}
+        </div>
+      </SortableContext>
 
       {adding ? (
         <form onSubmit={onSubmit} className="mt-3 space-y-2">
