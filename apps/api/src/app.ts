@@ -5,6 +5,7 @@ import type { Config } from "./config.js";
 import type { Db } from "./db/client.js";
 import { AppError } from "./errors.js";
 import { registerAuthRoutes } from "./modules/auth/routes.js";
+import { registerProjectRoutes } from "./modules/projects/routes.js";
 import { registerCsrf } from "./plugins/csrf.js";
 import { registerErrorHandling } from "./plugins/errors.js";
 import { registerSession } from "./plugins/session.js";
@@ -32,6 +33,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   // Routes go in a child plugin so they are defined after (and picked up by) the rate-limit plugin.
   void app.register(async (instance) => {
     registerAuthRoutes(instance);
+    registerProjectRoutes(instance);
   });
 
   app.get("/api/health", async () => ({ status: "ok" }));
