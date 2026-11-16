@@ -61,3 +61,12 @@ export const boardSchema = z.object({
   members: z.array(memberSchema),
 });
 export type Board = z.infer<typeof boardSchema>;
+
+export const moveTicketSchema = z.object({
+  columnId: uuid,
+  /** The ticket that will sit immediately above the moved ticket. */
+  afterTicketId: uuid.nullable().default(null),
+  /** The ticket that will sit immediately below the moved ticket. */
+  beforeTicketId: uuid.nullable().default(null),
+});
+export type MoveTicketRequest = z.infer<typeof moveTicketSchema>;

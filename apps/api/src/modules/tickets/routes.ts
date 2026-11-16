@@ -1,10 +1,11 @@
-import { createTicketSchema, updateTicketSchema } from "@tracker/shared";
+import { createTicketSchema, moveTicketSchema, updateTicketSchema } from "@tracker/shared";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { parse } from "../../errors.js";
 import { assertMember } from "../../lib/authz.js";
 import { requireUser } from "../../plugins/session.js";
 import { getColumn } from "../columns/service.js";
+import { moveTicket } from "./move.js";
 import * as svc from "./service.js";
 
 const projectParams = z.object({ projectId: z.string().uuid() });
@@ -62,6 +63,13 @@ export function registerTicketRoutes(app: FastifyInstance): void {
     const { ticketId } = parse(ticketParams, req.params);
     await authorizeTicket(user.id, ticketId);
     return svc.archiveTicket(db, user.id, ticketId);
+  });
+
+  app.post("/api/tickets/:ticketId/move", async (req) => {
+    const user = requireUser(req);
+    const { ticketId } = parse(ticketParams, req.params);
+    await authorizeTicket(user.id, ticketId);
+    return moveTicket(db, user.id, ticketId, parse(moveTicketSchema, req.body));
   });
 
   app.post("/api/tickets/:ticketId/restore", async (req) => {
