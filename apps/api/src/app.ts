@@ -1,8 +1,13 @@
 import helmet from "@fastify/helmet";
+import rateLimit from "@fastify/rate-limit";
 import Fastify, { type FastifyInstance } from "fastify";
 import type { Config } from "./config.js";
 import type { Db } from "./db/client.js";
+import { AppError } from "./errors.js";
+import { registerAuthRoutes } from "./modules/auth/routes.js";
+import { registerCsrf } from "./plugins/csrf.js";
 import { registerErrorHandling } from "./plugins/errors.js";
+import { registerSession } from "./plugins/session.js";
 
 export type AppDeps = { db: Db; config: Config };
 
@@ -17,6 +22,17 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.decorate("deps", deps);
   registerErrorHandling(app);
   void app.register(helmet);
+  void app.register(rateLimit, {
+    global: false,
+    hook: "preHandler", // run after body parsing so limits can key on the login email
+    errorResponseBuilder: () => new AppError("RATE_LIMITED", "Too many attempts, try again later"),
+  });
+  registerSession(app);
+  registerCsrf(app);
+  // Routes go in a child plugin so they are defined after (and picked up by) the rate-limit plugin.
+  void app.register(async (instance) => {
+    registerAuthRoutes(instance);
+  });
 
   app.get("/api/health", async () => ({ status: "ok" }));
 
