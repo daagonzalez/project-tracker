@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npm run lint
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npm test -w packages/shared
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
@@ -78,11 +78,39 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
       - run: npm audit --audit-level=high
 
+  # Builds the production image, then actually starts it against Postgres: a successful build alone
+  # would not catch a runtime break (e.g. a native module failing to load on a new Node version).
   docker-build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tracker
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: tracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tracker"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
       - run: docker build -t project-tracker:ci .
+      - name: Start the image and check it is healthy and non-root
+        run: |
+          docker run -d --name app --network host \
+            -e DATABASE_URL=postgres://tracker:ci-only-password@localhost:5432/tracker \
+            project-tracker:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/health; then ok=1; break; fi
+            sleep 2
+          done
+          if [ -z "$ok" ]; then docker logs app; exit 1; fi
+          test "$(docker exec app id -u)" != "0"
+          curl -fsS http://localhost:3000/ | grep -qi "<div id=\"root\">"
