@@ -5,6 +5,7 @@ import type { Config } from "./config.js";
 import type { Db } from "./db/client.js";
 import { AppError } from "./errors.js";
 import { registerAuthRoutes } from "./modules/auth/routes.js";
+import { registerColumnRoutes } from "./modules/columns/routes.js";
 import { registerProjectRoutes } from "./modules/projects/routes.js";
 import { registerCsrf } from "./plugins/csrf.js";
 import { registerErrorHandling } from "./plugins/errors.js";
@@ -34,6 +35,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   void app.register(async (instance) => {
     registerAuthRoutes(instance);
     registerProjectRoutes(instance);
+    registerColumnRoutes(instance);
   });
 
   app.get("/api/health", async () => ({ status: "ok" }));
