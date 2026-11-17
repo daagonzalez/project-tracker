@@ -34,8 +34,8 @@ export function HistoryList({ ticketId, board }: { ticketId: string; board: Boar
       <h3 id="history-heading" className="font-semibold">
         History
       </h3>
-      {events.isError && <p className="text-sm text-red-700">Could not load history.</p>}
-      <ul className="space-y-1 text-sm text-slate-700">
+      {events.isError && <p className="text-sm text-danger">Could not load history.</p>}
+      <ul className="space-y-1 text-sm text-fg-secondary">
         {events.data?.map((e) => (
           <li key={e.id}>
             <span className="font-medium">{e.actor.email}</span> <span>{describe(e, board)}</span>

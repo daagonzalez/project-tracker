@@ -15,10 +15,10 @@ export function ProjectSettingsPage() {
   const deleteProject = useDeleteProject(projectId);
   const navigate = useNavigate();
 
-  if (board.isPending) return <p className="p-6 text-slate-600">Loading…</p>;
+  if (board.isPending) return <p className="p-6 text-fg-muted">Loading…</p>;
   if (board.isError) {
     return (
-      <p role="alert" className="p-6 text-red-700">
+      <p role="alert" className="p-6 text-danger">
         {board.error instanceof ApiError ? board.error.message : "Could not load the project"}
       </p>
     );
@@ -35,7 +35,7 @@ export function ProjectSettingsPage() {
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-6">
       <div>
-        <Link to={`/projects/${projectId}`} className="text-sm text-sky-700 underline">
+        <Link to={`/projects/${projectId}`} className="text-sm text-link underline">
           ← Back to {project.name}
         </Link>
         <h1 className="mt-1 text-2xl font-semibold">Project settings</h1>
@@ -45,11 +45,11 @@ export function ProjectSettingsPage() {
       <MemberSettings projectId={projectId} members={members} isOwner={isOwner} />
       <ArchivedList projectId={projectId} />
       {isOwner && (
-        <section aria-labelledby="danger-heading" className="rounded-lg border border-red-200 bg-white p-4">
-          <h2 id="danger-heading" className="mb-2 text-lg font-semibold text-red-800">
+        <section aria-labelledby="danger-heading" className="rounded-lg border border-danger-line-subtle bg-surface p-4">
+          <h2 id="danger-heading" className="mb-2 text-lg font-semibold text-danger-strong">
             Danger zone
           </h2>
-          <button type="button" onClick={onDelete} className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50">
+          <button type="button" onClick={onDelete} className="rounded border border-danger-line px-3 py-1.5 text-sm text-danger hover:bg-danger-surface">
             Delete project
           </button>
           <ErrorNote error={deleteProject.error} />
