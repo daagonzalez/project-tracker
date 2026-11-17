@@ -126,3 +126,21 @@ test.describe("remembering the choice", () => {
     expect(isDark(await pageBackgroundLuminance(page))).toBe(true);
   });
 });
+
+test.describe("when the OS colour scheme changes while the app is open", () => {
+  test.use({ colorScheme: "light" });
+
+  test("follows it on System without a reload", async ({ page, api }) => {
+    await openProjects(page, api);
+    expect(isDark(await pageBackgroundLuminance(page))).toBe(false);
+    await page.emulateMedia({ colorScheme: "dark" });
+    expect(isDark(await pageBackgroundLuminance(page))).toBe(true);
+  });
+
+  test("ignores it when Light is chosen", async ({ page, api }) => {
+    await openProjects(page, api);
+    await page.getByRole("radiogroup", { name: "Theme" }).getByRole("radio", { name: "Light" }).click();
+    await page.emulateMedia({ colorScheme: "dark" });
+    expect(isDark(await pageBackgroundLuminance(page))).toBe(false);
+  });
+});
