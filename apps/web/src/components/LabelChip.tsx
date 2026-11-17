@@ -8,7 +8,7 @@ function textColor(hex: string): string {
 
 export function LabelChip({ label }: { label: Label }) {
   return (
-    <span className="rounded px-1.5 py-0.5 text-xs font-medium" style={{ backgroundColor: label.color, color: textColor(label.color) }}>
+    <span className="rounded px-1.5 py-0.5 text-xs font-medium dark:ring-1 dark:ring-white/20" style={{ backgroundColor: label.color, color: textColor(label.color) }}>
       {label.name}
     </span>
   );

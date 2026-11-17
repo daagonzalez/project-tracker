@@ -1,5 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
-import { projectSchema } from "@tracker/shared";
+import { boardSchema, projectSchema } from "@tracker/shared";
+import { fixtures } from "./support/fixtures.js";
 import { respond, type MockApi } from "./support/mockApi.js";
 import { expect, signedIn, test } from "./support/test.js";
 
@@ -34,6 +35,22 @@ async function openProjects(page: Page, api: MockApi) {
   await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
 }
 
+/** Opens a board whose only ticket carries a near-black label, the hardest case on a dark page. */
+async function openBoardWithDarkLabel(page: Page, api: MockApi) {
+  signedIn(api);
+  const project = fixtures.project();
+  const ink = fixtures.label({ projectId: project.id, name: "ink", color: "#111111" });
+  const todo = fixtures.column({ projectId: project.id, name: "Todo" });
+  todo.tickets = [fixtures.ticket({ projectId: project.id, columnId: todo.id, title: "Fix login", labelIds: [ink.id] })];
+  todo.ticketCount = 1;
+  const board = fixtures.board({ project, columns: [todo], labels: [ink] });
+  api.on("GET", `/api/projects/${project.id}/board`, respond.json(boardSchema, board));
+  await page.goto(`/projects/${project.id}`);
+  const chip = page.getByRole("article", { name: "Fix login" }).getByText("ink");
+  await expect(chip).toBeVisible();
+  return chip;
+}
+
 test.describe("with the OS set to dark", () => {
   test.use({ colorScheme: "dark" });
 
@@ -64,6 +81,12 @@ test.describe("with the OS set to dark", () => {
     expect(isDark(await colorLuminance(page.getByRole("banner"), "borderBottomColor"))).toBe(true);
   });
 
+  test("keeps a label's own colour and outlines it so dark labels stay visible", async ({ page, api }) => {
+    const chip = await openBoardWithDarkLabel(page, api);
+    await expect(chip).toHaveCSS("background-color", "rgb(17, 17, 17)");
+    await expect(chip).not.toHaveCSS("box-shadow", "none");
+  });
+
   test("going back to System follows the OS again", async ({ page, api }) => {
     await openProjects(page, api);
     const theme = page.getByRole("radiogroup", { name: "Theme" });
@@ -81,6 +104,12 @@ test.describe("with the OS set to light", () => {
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
     expect(isDark(await pageBackgroundLuminance(page))).toBe(false);
+  });
+
+  test("does not outline labels", async ({ page, api }) => {
+    const chip = await openBoardWithDarkLabel(page, api);
+    await expect(chip).toHaveCSS("background-color", "rgb(17, 17, 17)");
+    await expect(chip).toHaveCSS("box-shadow", "none");
   });
 
   test("choosing Dark overrides the OS and shows a dark page", async ({ page, api }) => {
