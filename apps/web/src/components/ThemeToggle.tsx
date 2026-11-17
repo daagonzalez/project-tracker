@@ -1,13 +1,5 @@
 import { useState, type ReactNode } from "react";
-
-type Theme = "system" | "light" | "dark";
-
-/** Pins the page to a theme, or lets it follow the OS when the choice is "system". */
-function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  if (theme === "system") delete root.dataset.theme;
-  else root.dataset.theme = theme;
-}
+import { applyTheme, loadTheme, saveTheme, type Theme } from "../theme";
 
 const icon = (path: ReactNode) => (
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -41,11 +33,12 @@ const options: { value: Theme; label: string; icon: ReactNode }[] = [
 
 /** System / Light / Dark switch shown in the page header. */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>(loadTheme);
 
   function choose(next: Theme) {
     setTheme(next);
     applyTheme(next);
+    saveTheme(next);
   }
 
   return (

@@ -13,7 +13,9 @@ async function pageBackgroundLuminance(page: Page): Promise<number> {
     const ctx = document.createElement("canvas").getContext("2d")!;
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 1, 1);
-    const [r, g, b] = Array.from(ctx.getImageData(0, 0, 1, 1).data).map((v) => {
+    const [red, green, blue, alpha] = ctx.getImageData(0, 0, 1, 1).data;
+    if (alpha !== 255) throw new Error(`page background is not opaque: ${color}`);
+    const [r, g, b] = [red!, green!, blue!].map((v) => {
       const c = v / 255;
       return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     });
@@ -78,6 +80,49 @@ test.describe("with the OS set to light", () => {
     await openProjects(page, api);
     await page.getByRole("radiogroup", { name: "Theme" }).getByRole("radio", { name: "Dark" }).click();
     await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
+    expect(isDark(await pageBackgroundLuminance(page))).toBe(true);
+  });
+});
+
+test.describe("remembering the choice", () => {
+  test.use({ colorScheme: "light" });
+
+  test("keeps the chosen theme after a reload", async ({ page, api }) => {
+    await openProjects(page, api);
+    await page.getByRole("radiogroup", { name: "Theme" }).getByRole("radio", { name: "Dark" }).click();
+    await page.reload();
+    await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
+    expect(isDark(await pageBackgroundLuminance(page))).toBe(true);
+  });
+
+  test("applies the saved theme before the app script runs, so there is no flash", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("theme", "dark"));
+    // Stop the app bundle from loading: any theme on <html> now was applied before the first paint.
+    // (Stylesheets load with the bundle in dev, so we check the theme marker rather than pixels.)
+    await page.route(/\/src\/main\.tsx/, (route) => route.abort());
+    await page.goto("/login");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("treats an unrecognised saved value as System", async ({ page, api }) => {
+    await page.addInitScript(() => localStorage.setItem("theme", "purple"));
+    await openProjects(page, api);
+    await expect(page.getByRole("radio", { name: "System" })).toBeChecked();
+    expect(isDark(await pageBackgroundLuminance(page))).toBe(false);
+  });
+
+  test("falls back to System when storage is unavailable", async ({ page, api }) => {
+    await page.addInitScript(() => {
+      Storage.prototype.getItem = () => {
+        throw new DOMException("blocked", "SecurityError");
+      };
+      Storage.prototype.setItem = () => {
+        throw new DOMException("blocked", "SecurityError");
+      };
+    });
+    await openProjects(page, api);
+    await expect(page.getByRole("radio", { name: "System" })).toBeChecked();
+    await page.getByRole("radio", { name: "Dark" }).click();
     expect(isDark(await pageBackgroundLuminance(page))).toBe(true);
   });
 });
