@@ -21,12 +21,12 @@ export function CommentList({ ticketId, currentUserId }: { ticketId: string; cur
       <h3 id="comments-heading" className="font-semibold">
         Comments
       </h3>
-      {comments.isPending && <p className="text-sm text-slate-600">Loading…</p>}
-      {comments.isError && <p className="text-sm text-red-700">Could not load comments.</p>}
+      {comments.isPending && <p className="text-sm text-fg-muted">Loading…</p>}
+      {comments.isError && <p className="text-sm text-danger">Could not load comments.</p>}
       <ul className="space-y-3">
         {comments.data?.map((c) => (
-          <li key={c.id} className="rounded border border-slate-200 bg-white p-3">
-            <p className="mb-1 text-xs text-slate-500">{c.author.email}</p>
+          <li key={c.id} className="rounded border border-line-subtle bg-surface p-3">
+            <p className="mb-1 text-xs text-fg-subtle">{c.author.email}</p>
             {editingId === c.id ? (
               <form
                 onSubmit={(e) => {
@@ -37,13 +37,13 @@ export function CommentList({ ticketId, currentUserId }: { ticketId: string; cur
               >
                 <label className="block text-sm">
                   Edit comment
-                  <textarea value={editDraft} onChange={(e) => setEditDraft(e.target.value)} rows={3} className="mt-1 w-full rounded border border-slate-300 p-2" />
+                  <textarea value={editDraft} onChange={(e) => setEditDraft(e.target.value)} rows={3} className="mt-1 w-full rounded border border-line p-2" />
                 </label>
                 <div className="flex gap-2">
-                  <button type="submit" className="rounded bg-slate-900 px-2 py-1 text-sm text-white">
+                  <button type="submit" className="rounded bg-primary px-2 py-1 text-sm text-on-primary">
                     Save
                   </button>
-                  <button type="button" onClick={() => setEditingId(null)} className="rounded px-2 py-1 text-sm text-slate-600">
+                  <button type="button" onClick={() => setEditingId(null)} className="rounded px-2 py-1 text-sm text-fg-muted">
                     Cancel
                   </button>
                 </div>
@@ -59,11 +59,11 @@ export function CommentList({ ticketId, currentUserId }: { ticketId: string; cur
                     setEditingId(c.id);
                     setEditDraft(c.body);
                   }}
-                  className="text-slate-600 underline"
+                  className="text-fg-muted underline"
                 >
                   Edit
                 </button>
-                <button type="button" onClick={() => remove.mutate(c.id)} className="text-red-700 underline">
+                <button type="button" onClick={() => remove.mutate(c.id)} className="text-danger underline">
                   Delete
                 </button>
               </div>
@@ -79,10 +79,10 @@ export function CommentList({ ticketId, currentUserId }: { ticketId: string; cur
             onChange={(e) => setDraft(e.target.value)}
             rows={3}
             required
-            className="mt-1 w-full rounded border border-slate-300 p-2"
+            className="mt-1 w-full rounded border border-line p-2"
           />
         </label>
-        <button type="submit" disabled={add.isPending} className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-60">
+        <button type="submit" disabled={add.isPending} className="rounded bg-primary px-3 py-1.5 text-sm text-on-primary disabled:opacity-60">
           Add comment
         </button>
       </form>

@@ -8,7 +8,7 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 
 function RequireAuth() {
   const session = useSession();
-  if (session.isPending) return <p className="p-6 text-slate-600">Loading…</p>;
+  if (session.isPending) return <p className="p-6 text-fg-muted">Loading…</p>;
   if (session.isError) return <Navigate to="/login" replace />;
   return <Outlet />;
 }

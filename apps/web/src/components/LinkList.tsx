@@ -30,10 +30,10 @@ export function LinkList({ ticketId, links }: { ticketId: string; links: Link[] 
       <ul className="space-y-1">
         {links.map((l) => (
           <li key={l.id} className="flex items-center justify-between gap-2 text-sm">
-            <a href={l.url} target="_blank" rel="noopener noreferrer" className="truncate text-sky-700 underline">
+            <a href={l.url} target="_blank" rel="noopener noreferrer" className="truncate text-link underline">
               {l.title ?? l.url}
             </a>
-            <button type="button" onClick={() => remove.mutate(l.id)} aria-label={`Remove link ${l.title ?? l.url}`} className="text-xs text-red-700 underline">
+            <button type="button" onClick={() => remove.mutate(l.id)} aria-label={`Remove link ${l.title ?? l.url}`} className="text-xs text-danger underline">
               Remove
             </button>
           </li>
@@ -48,18 +48,18 @@ export function LinkList({ ticketId, links }: { ticketId: string; links: Link[] 
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://github.com/…/pull/1"
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-line px-2 py-1"
           />
         </label>
         <label className="block text-sm">
           Link title (optional)
-          <input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1" />
+          <input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded border border-line px-2 py-1" />
         </label>
-        <button type="submit" disabled={add.isPending} className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-60">
+        <button type="submit" disabled={add.isPending} className="rounded bg-primary px-3 py-1.5 text-sm text-on-primary disabled:opacity-60">
           Add link
         </button>
         {add.error && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-danger">
             {add.error instanceof ApiError ? add.error.message : "Could not add the link"}
           </p>
         )}

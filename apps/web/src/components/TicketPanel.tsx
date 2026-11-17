@@ -20,13 +20,13 @@ export function TicketPanel({ projectId, ticketId, board, onClose }: Props) {
   }, [onClose]);
 
   return (
-    <aside role="dialog" aria-label="Ticket details" className="fixed right-0 top-0 z-20 h-full w-full max-w-md overflow-y-auto border-l bg-slate-50 p-5 shadow-xl">
-      <button type="button" onClick={onClose} className="mb-3 rounded border border-slate-300 px-2 py-1 text-sm hover:bg-white">
+    <aside role="dialog" aria-label="Ticket details" className="fixed right-0 top-0 z-20 h-full w-full max-w-md overflow-y-auto border-l bg-canvas p-5 shadow-xl">
+      <button type="button" onClick={onClose} className="mb-3 rounded border border-line px-2 py-1 text-sm hover:bg-surface">
         Close
       </button>
-      {ticket.isPending && <p className="text-slate-600">Loading…</p>}
+      {ticket.isPending && <p className="text-fg-muted">Loading…</p>}
       {ticket.isError && (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="text-danger">
           {ticket.error instanceof ApiError ? ticket.error.message : "Could not load the ticket"}
         </p>
       )}
@@ -76,22 +76,22 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
           <form onSubmit={saveTitle} className="flex gap-2">
             <label className="flex-1 text-sm">
               Title
-              <input autoFocus value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1" />
+              <input autoFocus value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded border border-line px-2 py-1" />
             </label>
-            <button type="submit" className="self-end rounded bg-slate-900 px-2 py-1 text-sm text-white">
+            <button type="submit" className="self-end rounded bg-primary px-2 py-1 text-sm text-on-primary">
               Save
             </button>
           </form>
         ) : (
           <div className="flex items-start justify-between gap-2">
             <h2 className="text-xl font-semibold">{ticket.title}</h2>
-            <button type="button" onClick={() => { setTitle(ticket.title); setRenaming(true); }} className="text-sm text-slate-600 underline">
+            <button type="button" onClick={() => { setTitle(ticket.title); setRenaming(true); }} className="text-sm text-fg-muted underline">
               Rename
             </button>
           </div>
         )}
         {patch.error && (
-          <p role="alert" className="mt-2 text-sm text-red-700">
+          <p role="alert" className="mt-2 text-sm text-danger">
             {patch.error instanceof ApiError ? patch.error.message : "Could not save the change"}
           </p>
         )}
@@ -103,7 +103,7 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
             Description
           </h3>
           {!editingDescription && (
-            <button type="button" onClick={() => { setDescription(ticket.description); setEditingDescription(true); }} className="text-sm text-slate-600 underline">
+            <button type="button" onClick={() => { setDescription(ticket.description); setEditingDescription(true); }} className="text-sm text-fg-muted underline">
               Edit description
             </button>
           )}
@@ -118,13 +118,13 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
           >
             <label className="block text-sm">
               Description
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="mt-1 w-full rounded border border-slate-300 p-2" />
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} className="mt-1 w-full rounded border border-line p-2" />
             </label>
             <div className="flex gap-2">
-              <button type="submit" className="rounded bg-slate-900 px-2 py-1 text-sm text-white">
+              <button type="submit" className="rounded bg-primary px-2 py-1 text-sm text-on-primary">
                 Save description
               </button>
-              <button type="button" onClick={() => setEditingDescription(false)} className="rounded px-2 py-1 text-sm text-slate-600">
+              <button type="button" onClick={() => setEditingDescription(false)} className="rounded px-2 py-1 text-sm text-fg-muted">
                 Cancel
               </button>
             </div>
@@ -132,7 +132,7 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
         ) : ticket.description ? (
           <Markdown>{ticket.description}</Markdown>
         ) : (
-          <p className="text-sm text-slate-500">No description yet.</p>
+          <p className="text-sm text-fg-subtle">No description yet.</p>
         )}
       </section>
 
@@ -142,7 +142,7 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
           <select
             value={points ?? ""}
             onChange={(e) => save({ points: e.target.value === "" ? null : Number(e.target.value) })}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-line px-2 py-1"
           >
             <option value="">None</option>
             {STORY_POINT_SCALE.map((p) => (
@@ -157,7 +157,7 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
           <select
             value={assigneeId ?? ""}
             onChange={(e) => save({ assigneeId: e.target.value === "" ? null : e.target.value })}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1"
+            className="mt-1 w-full rounded border border-line px-2 py-1"
           >
             <option value="">Unassigned</option>
             {board.members.map((m) => (
@@ -189,7 +189,7 @@ function PanelBody({ projectId, ticket, board, onClose }: { projectId: string; t
         type="button"
         onClick={() => archive.mutate(undefined, { onSuccess: onClose })}
         disabled={archive.isPending}
-        className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:opacity-60"
+        className="rounded border border-danger-line px-3 py-1.5 text-sm text-danger hover:bg-danger-surface disabled:opacity-60"
       >
         Archive ticket
       </button>

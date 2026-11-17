@@ -19,14 +19,14 @@ export function ProjectsPage() {
     <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-2xl font-semibold">Projects</h1>
 
-      {projects.isPending && <p className="mt-4 text-slate-600">Loading…</p>}
-      {projects.isError && <p className="mt-4 text-red-700">Could not load projects.</p>}
-      {projects.isSuccess && projects.data.length === 0 && <p className="mt-4 text-slate-600">No projects yet. Create your first one below.</p>}
+      {projects.isPending && <p className="mt-4 text-fg-muted">Loading…</p>}
+      {projects.isError && <p className="mt-4 text-danger">Could not load projects.</p>}
+      {projects.isSuccess && projects.data.length === 0 && <p className="mt-4 text-fg-muted">No projects yet. Create your first one below.</p>}
       {projects.isSuccess && projects.data.length > 0 && (
-        <ul className="mt-4 divide-y rounded-lg bg-white shadow">
+        <ul className="mt-4 divide-y rounded-lg bg-surface shadow">
           {projects.data.map((p) => (
             <li key={p.id}>
-              <Link to={`/projects/${p.id}`} className="block px-4 py-3 hover:bg-slate-50">
+              <Link to={`/projects/${p.id}`} className="block px-4 py-3 hover:bg-surface-hover">
                 {p.name}
               </Link>
             </li>
@@ -42,15 +42,15 @@ export function ProjectsPage() {
             onChange={(e) => setName(e.target.value)}
             required
             maxLength={80}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5"
+            className="mt-1 w-full rounded border border-line px-2 py-1.5"
           />
         </label>
-        <button type="submit" disabled={create.isPending} className="rounded bg-slate-900 px-3 py-2 text-white disabled:opacity-60">
+        <button type="submit" disabled={create.isPending} className="rounded bg-primary px-3 py-2 text-on-primary disabled:opacity-60">
           Create project
         </button>
       </form>
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-700">
+        <p role="alert" className="mt-2 text-sm text-danger">
           {error}
         </p>
       )}

@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+/*
+ * Semantic colour tokens. Components use these (bg-surface, text-fg-muted,
+ * border-line, ...) instead of raw palette colours, so a theme only has to
+ * redefine the variables below.
+ */
+@theme {
+  /* Backgrounds */
+  --color-canvas: var(--color-slate-50);
+  --color-surface: var(--color-white);
+  --color-surface-hover: var(--color-slate-50);
+  --color-surface-muted: var(--color-slate-100);
+  --color-surface-muted-hover: var(--color-slate-200);
+
+  /* Text */
+  --color-fg: var(--color-slate-900);
+  --color-fg-secondary: var(--color-slate-700);
+  --color-fg-muted: var(--color-slate-600);
+  --color-fg-subtle: var(--color-slate-500);
+
+  /* Borders */
+  --color-line: var(--color-slate-300);
+  --color-line-subtle: var(--color-slate-200);
+
+  /* Actions and focus */
+  --color-primary: var(--color-slate-900);
+  --color-on-primary: var(--color-white);
+  --color-link: var(--color-sky-700);
+  --color-focus: var(--color-sky-500);
+  --color-avatar: var(--color-slate-800);
+  --color-on-avatar: var(--color-white);
+
+  /* Danger */
+  --color-danger: var(--color-red-700);
+  --color-danger-strong: var(--color-red-800);
+  --color-danger-line: var(--color-red-300);
+  --color-danger-line-subtle: var(--color-red-200);
+  --color-danger-surface: var(--color-red-50);
+
+  /* Warning */
+  --color-warning-surface: var(--color-amber-50);
+  --color-warning-badge: var(--color-amber-200);
+  --color-warning-line: var(--color-amber-300);
+  --color-warning-fg: var(--color-amber-900);
+}

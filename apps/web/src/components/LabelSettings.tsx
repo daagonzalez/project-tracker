@@ -23,26 +23,26 @@ function LabelRow({ projectId, label }: { projectId: string; label: Label }) {
         >
           <label className="text-sm">
             Label name
-            <input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block rounded border border-slate-300 px-2 py-1" />
+            <input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block rounded border border-line px-2 py-1" />
           </label>
           <label className="text-sm">
             Label color
             <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="mt-1 block h-8 w-12" />
           </label>
-          <button type="submit" className="rounded bg-slate-900 px-2 py-1 text-sm text-white">
+          <button type="submit" className="rounded bg-primary px-2 py-1 text-sm text-on-primary">
             Save label
           </button>
-          <button type="button" onClick={() => setEditing(false)} className="px-2 py-1 text-sm text-slate-600">
+          <button type="button" onClick={() => setEditing(false)} className="px-2 py-1 text-sm text-fg-muted">
             Cancel
           </button>
         </form>
       ) : (
         <div className="flex items-center gap-3">
           <LabelChip label={label} />
-          <button type="button" aria-label={`Edit label ${label.name}`} onClick={() => setEditing(true)} className="text-sm text-slate-600 underline">
+          <button type="button" aria-label={`Edit label ${label.name}`} onClick={() => setEditing(true)} className="text-sm text-fg-muted underline">
             Edit
           </button>
-          <button type="button" aria-label={`Delete label ${label.name}`} onClick={() => remove.mutate(label.id)} className="text-sm text-red-700 underline">
+          <button type="button" aria-label={`Delete label ${label.name}`} onClick={() => remove.mutate(label.id)} className="text-sm text-danger underline">
             Delete
           </button>
         </div>
@@ -63,11 +63,11 @@ export function LabelSettings({ projectId, labels }: { projectId: string; labels
   };
 
   return (
-    <section aria-labelledby="labels-heading" className="rounded-lg bg-white p-4 shadow">
+    <section aria-labelledby="labels-heading" className="rounded-lg bg-surface p-4 shadow">
       <h2 id="labels-heading" className="mb-2 text-lg font-semibold">
         Labels
       </h2>
-      {labels.length === 0 && <p className="text-sm text-slate-500">No labels yet.</p>}
+      {labels.length === 0 && <p className="text-sm text-fg-subtle">No labels yet.</p>}
       <ul className="divide-y">
         {labels.map((l) => (
           <LabelRow key={l.id} projectId={projectId} label={l} />
@@ -76,13 +76,13 @@ export function LabelSettings({ projectId, labels }: { projectId: string; labels
       <form onSubmit={onAdd} className="mt-3 flex flex-wrap items-end gap-2">
         <label className="text-sm">
           Label name
-          <input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block rounded border border-slate-300 px-2 py-1" />
+          <input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block rounded border border-line px-2 py-1" />
         </label>
         <label className="text-sm">
           Label color
           <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="mt-1 block h-8 w-12" />
         </label>
-        <button type="submit" disabled={add.isPending} className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-60">
+        <button type="submit" disabled={add.isPending} className="rounded bg-primary px-3 py-1.5 text-sm text-on-primary disabled:opacity-60">
           Add label
         </button>
       </form>

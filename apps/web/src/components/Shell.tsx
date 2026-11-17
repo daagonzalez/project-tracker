@@ -9,16 +9,16 @@ export function Shell() {
 
   return (
     <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b bg-white px-6 py-3">
+      <header className="flex items-center justify-between border-b bg-surface px-6 py-3">
         <Link to="/" className="font-semibold">
           Project Tracker
         </Link>
-        <div className="flex items-center gap-3 text-sm text-slate-600">
+        <div className="flex items-center gap-3 text-sm text-fg-muted">
           <span>{session.data?.user.email}</span>
           <button
             type="button"
             onClick={() => logout.mutate(undefined, { onSettled: () => navigate("/login", { replace: true }) })}
-            className="rounded border border-slate-300 px-2 py-1 hover:bg-slate-50"
+            className="rounded border border-line px-2 py-1 hover:bg-surface-hover"
           >
             Sign out
           </button>

@@ -26,7 +26,7 @@ export function TicketCard({ ticket, labels, members, onOpen }: Props) {
       }}
       aria-label={ticket.title}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`cursor-grab touch-none rounded-md border border-slate-200 bg-white p-3 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 ${
+      className={`cursor-grab touch-none rounded-md border border-line-subtle bg-surface p-3 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${
         isDragging ? "relative z-10 opacity-80 shadow-lg" : ""
       }`}
     >
@@ -41,14 +41,14 @@ export function TicketCard({ ticket, labels, members, onOpen }: Props) {
       {(ticket.points !== null || assignee) && (
         <div className="mt-2 flex items-center justify-between">
           {ticket.points !== null ? (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{ticket.points}</span>
+            <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-fg-secondary">{ticket.points}</span>
           ) : (
             <span />
           )}
           {assignee && (
             <span
               title={`Assigned to ${assignee.email}`}
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-[10px] font-semibold text-white"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-avatar text-[10px] font-semibold text-on-avatar"
             >
               {initials(assignee.email)}
             </span>

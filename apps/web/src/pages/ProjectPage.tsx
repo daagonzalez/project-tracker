@@ -15,10 +15,10 @@ export function ProjectPage() {
   const openTicket = useCallback((id: string) => setSearchParams({ ticket: id }), [setSearchParams]);
   const closeTicket = useCallback(() => setSearchParams({}), [setSearchParams]);
 
-  if (board.isPending) return <p className="p-6 text-slate-600">Loading…</p>;
+  if (board.isPending) return <p className="p-6 text-fg-muted">Loading…</p>;
   if (board.isError) {
     return (
-      <p role="alert" className="p-6 text-red-700">
+      <p role="alert" className="p-6 text-danger">
         {board.error instanceof ApiError ? board.error.message : "Could not load the project"}
       </p>
     );
@@ -28,12 +28,12 @@ export function ProjectPage() {
     <main className="p-6">
       <div className="mb-4 flex items-baseline justify-between">
         <h1 className="text-2xl font-semibold">{board.data.project.name}</h1>
-        <Link to={`/projects/${projectId}/settings`} className="text-sm text-sky-700 underline">
+        <Link to={`/projects/${projectId}/settings`} className="text-sm text-link underline">
           Settings
         </Link>
       </div>
       {notice && (
-        <div role="alert" className="mb-4 flex items-center justify-between rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div role="alert" className="mb-4 flex items-center justify-between rounded border border-warning-line bg-warning-surface px-3 py-2 text-sm text-warning-fg">
           <span>{notice}</span>
           <button type="button" onClick={() => setNotice(null)} className="ml-4 underline">
             Dismiss

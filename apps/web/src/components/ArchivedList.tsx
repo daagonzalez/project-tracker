@@ -6,16 +6,16 @@ export function ArchivedList({ projectId }: { projectId: string }) {
   const restore = useRestoreTicket(projectId);
 
   return (
-    <section aria-labelledby="archived-heading" className="rounded-lg bg-white p-4 shadow">
+    <section aria-labelledby="archived-heading" className="rounded-lg bg-surface p-4 shadow">
       <h2 id="archived-heading" className="mb-2 text-lg font-semibold">
         Archived tickets
       </h2>
-      {archived.isSuccess && archived.data.length === 0 && <p className="text-sm text-slate-500">Nothing archived.</p>}
+      {archived.isSuccess && archived.data.length === 0 && <p className="text-sm text-fg-subtle">Nothing archived.</p>}
       <ul className="divide-y">
         {archived.data?.map((t) => (
           <li key={t.id} className="flex items-center justify-between py-2 text-sm">
             <span>{t.title}</span>
-            <button type="button" aria-label={`Restore ${t.title}`} onClick={() => restore.mutate(t.id)} className="text-sky-700 underline">
+            <button type="button" aria-label={`Restore ${t.title}`} onClick={() => restore.mutate(t.id)} className="text-link underline">
               Restore
             </button>
           </li>

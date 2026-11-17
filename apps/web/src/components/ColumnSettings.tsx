@@ -21,13 +21,13 @@ function ColumnRow({ projectId, column }: { projectId: string; column: BoardColu
           placeholder="No limit"
           value={limit}
           onChange={(e) => setLimit(e.target.value)}
-          className="w-24 rounded border border-slate-300 px-2 py-1"
+          className="w-24 rounded border border-line px-2 py-1"
         />
         <button
           type="button"
           aria-label={`Save WIP limit for ${column.name}`}
           onClick={() => update.mutate({ id: column.id, wipLimit: toLimit(limit) })}
-          className="rounded border border-slate-300 px-2 py-1 text-sm hover:bg-slate-50"
+          className="rounded border border-line px-2 py-1 text-sm hover:bg-surface-hover"
         >
           Save
         </button>
@@ -35,7 +35,7 @@ function ColumnRow({ projectId, column }: { projectId: string; column: BoardColu
           type="button"
           aria-label={`Delete column ${column.name}`}
           onClick={() => remove.mutate(column.id)}
-          className="rounded border border-red-300 px-2 py-1 text-sm text-red-700 hover:bg-red-50"
+          className="rounded border border-danger-line px-2 py-1 text-sm text-danger hover:bg-danger-surface"
         >
           Delete
         </button>
@@ -64,7 +64,7 @@ export function ColumnSettings({ projectId, columns }: { projectId: string; colu
   };
 
   return (
-    <section aria-labelledby="columns-heading" className="rounded-lg bg-white p-4 shadow">
+    <section aria-labelledby="columns-heading" className="rounded-lg bg-surface p-4 shadow">
       <h2 id="columns-heading" className="mb-2 text-lg font-semibold">
         Columns
       </h2>
@@ -76,13 +76,13 @@ export function ColumnSettings({ projectId, columns }: { projectId: string; colu
       <form onSubmit={onAdd} className="mt-3 flex flex-wrap items-end gap-2">
         <label className="text-sm">
           Column name
-          <input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block rounded border border-slate-300 px-2 py-1" />
+          <input required maxLength={80} value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block rounded border border-line px-2 py-1" />
         </label>
         <label className="text-sm">
           WIP limit (optional)
-          <input type="number" min={1} value={limit} onChange={(e) => setLimit(e.target.value)} className="mt-1 block w-28 rounded border border-slate-300 px-2 py-1" />
+          <input type="number" min={1} value={limit} onChange={(e) => setLimit(e.target.value)} className="mt-1 block w-28 rounded border border-line px-2 py-1" />
         </label>
-        <button type="submit" disabled={add.isPending} className="rounded bg-slate-900 px-3 py-1.5 text-sm text-white disabled:opacity-60">
+        <button type="submit" disabled={add.isPending} className="rounded bg-primary px-3 py-1.5 text-sm text-on-primary disabled:opacity-60">
           Add column
         </button>
       </form>
