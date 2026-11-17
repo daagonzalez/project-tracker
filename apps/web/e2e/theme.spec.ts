@@ -1,27 +1,29 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { projectSchema } from "@tracker/shared";
 import { respond, type MockApi } from "./support/mockApi.js";
 import { expect, signedIn, test } from "./support/test.js";
 
 /**
- * Relative luminance (0 = black, 1 = white) of the page background as the user sees it.
+ * Relative luminance (0 = black, 1 = white) of an element's colour property as the user sees it.
  * Painting the computed colour onto a canvas normalises any CSS colour syntax (oklch, rgb, ...) to sRGB.
  */
-async function pageBackgroundLuminance(page: Page): Promise<number> {
-  return page.evaluate(() => {
-    const color = getComputedStyle(document.body).backgroundColor;
+async function colorLuminance(element: Locator, property: "backgroundColor" | "borderBottomColor"): Promise<number> {
+  return element.evaluate((el, prop) => {
+    const color = getComputedStyle(el)[prop];
     const ctx = document.createElement("canvas").getContext("2d")!;
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, 1, 1);
     const [red, green, blue, alpha] = ctx.getImageData(0, 0, 1, 1).data;
-    if (alpha !== 255) throw new Error(`page background is not opaque: ${color}`);
+    if (alpha !== 255) throw new Error(`${prop} is not opaque: ${color}`);
     const [r, g, b] = [red!, green!, blue!].map((v) => {
       const c = v / 255;
       return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     });
     return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
-  });
+  }, property);
 }
+
+const pageBackgroundLuminance = (page: Page) => colorLuminance(page.locator("body"), "backgroundColor");
 
 const isDark = (luminance: number) => luminance < 0.1;
 
@@ -55,6 +57,11 @@ test.describe("with the OS set to dark", () => {
     await page.getByRole("radiogroup", { name: "Theme" }).getByRole("radio", { name: "Light" }).click();
     await expect(page.getByRole("radio", { name: "Light" })).toBeChecked();
     expect(isDark(await pageBackgroundLuminance(page))).toBe(false);
+  });
+
+  test("keeps borders subtle rather than drawing bright lines", async ({ page, api }) => {
+    await openProjects(page, api);
+    expect(isDark(await colorLuminance(page.getByRole("banner"), "borderBottomColor"))).toBe(true);
   });
 
   test("going back to System follows the OS again", async ({ page, api }) => {
