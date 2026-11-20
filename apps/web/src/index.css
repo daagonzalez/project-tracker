@@ -44,3 +44,69 @@
   --color-warning-line: var(--color-amber-300);
   --color-warning-fg: var(--color-amber-900);
 }
+
+/* Bare `border` / `divide-*` classes use a subtle themed colour instead of Tailwind v4's currentColor. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-line-subtle);
+  }
+}
+
+/*
+ * `dark` applies when the user picks Dark, or picks System (no data-theme) on a dark OS.
+ * public/theme-init.js sets data-theme before first paint; ThemeToggle changes it at runtime.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+
+  @variant dark {
+    color-scheme: dark;
+
+    --color-canvas: var(--color-slate-950);
+    --color-surface: var(--color-slate-900);
+    --color-surface-hover: var(--color-slate-800);
+    --color-surface-muted: var(--color-slate-800);
+    --color-surface-muted-hover: var(--color-slate-700);
+
+    --color-fg: var(--color-slate-100);
+    --color-fg-secondary: var(--color-slate-300);
+    --color-fg-muted: var(--color-slate-400);
+    --color-fg-subtle: var(--color-slate-400);
+
+    --color-line: var(--color-slate-700);
+    --color-line-subtle: var(--color-slate-800);
+
+    --color-primary: var(--color-slate-100);
+    --color-on-primary: var(--color-slate-900);
+    --color-link: var(--color-sky-400);
+    --color-focus: var(--color-sky-400);
+    --color-avatar: var(--color-slate-600);
+    --color-on-avatar: var(--color-white);
+
+    --color-danger: var(--color-red-400);
+    --color-danger-strong: var(--color-red-300);
+    --color-danger-line: var(--color-red-800);
+    --color-danger-line-subtle: var(--color-red-900);
+    --color-danger-surface: var(--color-red-950);
+
+    --color-warning-surface: var(--color-amber-950);
+    --color-warning-badge: var(--color-amber-800);
+    --color-warning-line: var(--color-amber-700);
+    --color-warning-fg: var(--color-amber-100);
+  }
+}

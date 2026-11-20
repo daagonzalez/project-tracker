@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useLogout, useSession } from "../api/hooks";
+import { ThemeToggle } from "./ThemeToggle";
 
 /** Page chrome for signed-in routes: app name, current user and sign-out. */
 export function Shell() {
@@ -14,6 +15,7 @@ export function Shell() {
           Project Tracker
         </Link>
         <div className="flex items-center gap-3 text-sm text-fg-muted">
+          <ThemeToggle />
           <span>{session.data?.user.email}</span>
           <button
             type="button"
