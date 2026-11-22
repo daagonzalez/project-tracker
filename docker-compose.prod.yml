@@ -1,31 +1,14 @@
 # Production stack for the Raspberry Pi (see docs/deploy-pi.md). Reads variables from .env next to this file.
-# Only Caddy is reachable from the LAN; the app and database live on the internal compose network.
+# Postgres is NOT part of this stack: DATABASE_URL points at the existing server on the network.
+# Only Caddy is reachable from the LAN; the app lives on the internal compose network.
 name: project-tracker
 
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-tracker}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
-      POSTGRES_DB: ${POSTGRES_DB:-tracker}
-    volumes:
-      - dbdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tracker}"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    restart: unless-stopped
-
   # The single image serving /api and the built web app. Runs migrations on startup.
   app:
     build: .
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-tracker}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tracker}
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL in .env}
       NODE_ENV: production
       # Behind Caddy: trust X-Forwarded-For so login rate limiting sees real client addresses.
       TRUST_PROXY: "true"
@@ -51,6 +34,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  dbdata:
   caddy_data:
   caddy_config:
