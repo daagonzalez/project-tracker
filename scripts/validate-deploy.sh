@@ -68,7 +68,8 @@ ok "caddy image builds and Caddyfile validates"
 grep -q "resolvers 1.1.1.1" deploy/caddy/Caddyfile || fail "Caddyfile must set 'resolvers 1.1.1.1'"
 ok "caddy uses 1.1.1.1 for DNS-01 propagation checks"
 
-# 6. The deploy workflow is valid and cannot be triggered by pull requests (the repo is public, the runner is the Pi).
+# 6. The deploy workflow is valid and has no pull_request trigger of its own (the repo is public, the runner is the Pi).
+# This is hygiene, not the security boundary: see check 8 for why.
 WF=.github/workflows/deploy.yml
 [ -f "$WF" ] || fail "$WF does not exist"
 docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color "$WF" >"$WORK/actionlint.out" 2>&1 ||
@@ -79,5 +80,17 @@ for needle in "workflow_run" "workflow_dispatch" "tracker-deploy" "github.event.
   grep -qF "$needle" "$WF" || fail "$WF must contain: $needle"
 done
 ok "deploy workflow triggers only from push-to-main CI success or manual dispatch, on the tracker-deploy runner"
+
+# 7. A deploy must ship the exact commit whose CI passed, never whatever origin/main has moved on to since.
+for needle in 'github.event.workflow_run.head_sha' 'git merge --ff-only "$SHA"'; do
+  grep -qF -- "$needle" "$WF" || fail "$WF must deploy the CI-verified commit; missing: $needle"
+done
+ok "deploy workflow merges the commit CI verified (workflow_run.head_sha)"
+
+# 8. The runbook must name the real control against fork pull requests: GitHub runs the workflow files from the PR's
+# own branch, so nothing in deploy.yml can stop a malicious PR from targeting the self-hosted runner.
+grep -qF "Require approval for all outside collaborators" docs/deploy-pi.md ||
+  fail "docs/deploy-pi.md must tell the reader to require approval for all outside collaborators' workflow runs"
+ok "runbook names the approval setting as the control for fork pull requests"
 
 echo "All deploy checks passed."

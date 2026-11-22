@@ -41,10 +41,15 @@ sudo ./svc.sh start
 
 ## 5. Lock down the public repo
 
-The repo is public and the runner is a machine on your home network, so:
+The repo is public and the runner is a machine on your home network, with access to `.env` and the Cloudflare token. GitHub advises against self-hosted runners on public repos, so understand the risk before relying on this.
 
-- Settings, Actions, General, "Fork pull request workflows from outside collaborators": require approval for all outside collaborators.
-- Never add a `pull_request` trigger to a workflow that runs on the `tracker-deploy` runner. `scripts/validate-deploy.sh` (CI job `deploy-config`) fails if `deploy.yml` gets one.
+For pull requests, GitHub runs the workflow files from the PR's own branch. A fork PR can therefore edit `ci.yml` to add a job with `runs-on: [self-hosted, tracker-deploy]`, and nothing in `deploy.yml` can prevent that. The repo setting is the actual control:
+
+- Settings, Actions, General, "Fork pull request workflows from outside collaborators": **Require approval for all outside collaborators**.
+- Never approve a workflow run from a fork PR that touches `.github/`, and read any PR's workflow changes before approving it.
+- Consider running the runner as a dedicated unprivileged user instead of your own, though membership of the `docker` group is effectively root on the Pi either way.
+
+`deploy.yml` itself has no `pull_request` trigger and checks out no PR code, and `scripts/validate-deploy.sh` enforces that, but that only keeps this one workflow clean.
 
 ## 6. First deploy
 
