@@ -20,14 +20,14 @@ Deploy project-tracker on the user's Raspberry Pi, the same way planner-app-ui i
 
 ## Design (decided with the user)
 - Domain `daagonzalez.com` stays registered at Squarespace; nameservers move to Cloudflare (free plan). Existing records are imported and checked before the switch.
-- A Caddy container terminates TLS on 443, built with the Cloudflare DNS plugin (small multi-stage Dockerfile, ARM64). A scoped Cloudflare API token (Zone:DNS:Edit, this zone only) lives in the Pi's `.env`.
+- A Caddy container terminates TLS on 8443 (not 443: Pi-hole owns 80 and 443 on the Pi), built with the Cloudflare DNS plugin (small multi-stage Dockerfile, ARM64). A scoped Cloudflare API token (Zone:DNS:Edit, this zone only) lives in the Pi's `.env`.
 - Caddy reverse-proxies to the `app` container. `app` and Postgres are not published to the host. `TRUST_PROXY=true` is set on `app` (already supported in `apps/api/src/config.ts`) so client IPs and rate limiting work behind Caddy.
 - A `deploy.yml` mirroring planner's: triggered by CI success on `main` (or manual), runs on a self-hosted ARM64 runner with its own label, fast-forwards the checkout, `docker compose up -d --build --wait`, health-checks through Caddy over HTTPS, shows logs on failure, prunes images.
 - A production compose file for `db`, `app`, `caddy` (named volumes for Postgres data and Caddy certs, `restart: unless-stopped`).
 
 ## My calls (not yet confirmed by the user, please check)
 - Hostname: `tracker.daagonzalez.com`, A record to the Pi's LAN IP.
-- Separate compose project for this app (not merged into the existing `ui-services` compose), so a mistake here cannot break planner. Planner's proxy keeps 4200; Caddy takes 443/80.
+- Separate compose project for this app (not merged into the existing `ui-services` compose), so a mistake here cannot break planner. Planner's proxy keeps 4200; Caddy publishes 8443 only, so the app lives at `https://tracker.daagonzalez.com:8443` (decided after finding Pi-hole on 80/443; no HTTP redirect).
 - Runner: a second runner registered on this repo with label `tracker-deploy` (runners are per-repo for personal accounts).
 - Production compose file name: `docker-compose.prod.yml`, kept separate from the dev `docker-compose.yml`.
 - Users are created on the Pi with the existing CLI command via `docker compose exec`.

@@ -43,7 +43,8 @@ if (errors.length === 0) {
   expect(!s.db.ports?.length, "db must not publish host ports");
   expect(!s.app.ports?.length, "app must not publish host ports");
   const published = (s.caddy.ports ?? []).map((p) => String(p.published)).sort();
-  expect(JSON.stringify(published) === JSON.stringify(["443", "80"]), `caddy must publish exactly 80 and 443, got ${published}`);
+  // 80 and 443 are taken by Pi-hole on the Pi, so Caddy serves HTTPS on 8443 only.
+  expect(JSON.stringify(published) === JSON.stringify(["8443"]), `caddy must publish exactly 8443, got ${published}`);
   expect(s.app.environment?.TRUST_PROXY === "true", "app must set TRUST_PROXY=true");
   expect(s.app.environment?.NODE_ENV === "production", "app must set NODE_ENV=production");
   expect(s.app.depends_on?.db?.condition === "service_healthy", "app must wait for a healthy db");
@@ -52,7 +53,7 @@ if (errors.length === 0) {
 }
 if (errors.length) { console.error(errors.map((e) => "FAIL: " + e).join("\n")); process.exit(1); }
 ' "$WORK/compose.json" || exit 1
-ok "service shape (no db/app host ports, caddy 80+443, TRUST_PROXY, health ordering, restart)"
+ok "service shape (no db/app host ports, caddy 8443 only, TRUST_PROXY, health ordering, restart)"
 
 # 4. The Caddy image builds and the Caddyfile is valid.
 docker build -q -t tracker-caddy:validate deploy/caddy >/dev/null || fail "deploy/caddy image does not build"
@@ -66,6 +67,7 @@ ok "caddy image builds and Caddyfile validates"
 
 # 5. Certificate challenge must use a public resolver (the Pi's own resolver may not see the TXT record).
 grep -q "resolvers 1.1.1.1" deploy/caddy/Caddyfile || fail "Caddyfile must set 'resolvers 1.1.1.1'"
+grep -qF '{$TRACKER_HOSTNAME}:8443' deploy/caddy/Caddyfile || fail "Caddyfile site address must be {\$TRACKER_HOSTNAME}:8443"
 ok "caddy uses 1.1.1.1 for DNS-01 propagation checks"
 
 # 6. The deploy workflow is valid and has no pull_request trigger of its own (the repo is public, the runner is the Pi).
@@ -76,7 +78,7 @@ docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color "$WF" >"
   { cat "$WORK/actionlint.out" >&2; fail "actionlint reports problems in $WF"; }
 ok "actionlint clean"
 ! grep -v '^[[:space:]]*#' "$WF" | grep -q "pull_request" || fail "$WF must not have a pull_request trigger"
-for needle in "workflow_run" "workflow_dispatch" "tracker-deploy" "github.event.workflow_run.event == 'push'" "cancel-in-progress: false"; do
+for needle in "workflow_run" "workflow_dispatch" "tracker-deploy" "github.event.workflow_run.event == 'push'" "cancel-in-progress: false" ':8443/api/health'; do
   grep -qF "$needle" "$WF" || fail "$WF must contain: $needle"
 done
 ok "deploy workflow triggers only from push-to-main CI success or manual dispatch, on the tracker-deploy runner"

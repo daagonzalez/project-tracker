@@ -1,8 +1,8 @@
 # Deploying to the Raspberry Pi
 
-Merging to `main` with green CI redeploys the app on the Pi automatically (`.github/workflows/deploy.yml`). This page covers the one-time setup. The app is served at `https://tracker.daagonzalez.com`, reachable from the home network only.
+Merging to `main` with green CI redeploys the app on the Pi automatically (`.github/workflows/deploy.yml`). This page covers the one-time setup. The app is served at `https://tracker.daagonzalez.com:8443`, reachable from the home network only.
 
-How it fits together: a Caddy container terminates HTTPS using a Let's Encrypt certificate obtained through a DNS challenge on Cloudflare, and proxies to the app container, which talks to Postgres. Only Caddy publishes ports (80 and 443). Config lives in `docker-compose.prod.yml`.
+How it fits together: a Caddy container terminates HTTPS using a Let's Encrypt certificate obtained through a DNS challenge on Cloudflare, and proxies to the app container, which talks to Postgres. Only Caddy publishes a port (8443). Pi-hole already owns 80 and 443 on the Pi, which is why the app is on a different port; there is no HTTP redirect. Config lives in `docker-compose.prod.yml`.
 
 ## 1. Prerequisites (already done once)
 
@@ -10,13 +10,13 @@ How it fits together: a Caddy container terminates HTTPS using a Let's Encrypt c
 - A Cloudflare API token limited to `Zone / DNS / Edit` and `Zone / Zone / Read` on the `daagonzalez.com` zone only. Do not use the Global API Key.
 - Docker with the compose plugin on the Pi, and the runner user in the `docker` group.
 
-## 2. Check ports 80 and 443 are free
+## 2. Check port 8443 is free
 
 ```bash
-sudo ss -tlnp | grep -E ':(80|443)\s'
+sudo ss -tlnp | grep -E ':8443\s'
 ```
 
-This should print nothing. If something owns those ports, stop and decide what to do before continuing; Caddy needs both.
+This should print nothing. If something owns it, stop and pick another port (it appears in `docker-compose.prod.yml`, `deploy/caddy/Caddyfile` and `deploy.yml`).
 
 ## 3. Clone and configure
 

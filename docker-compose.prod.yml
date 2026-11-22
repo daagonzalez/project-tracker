@@ -43,8 +43,8 @@ services:
       TRACKER_HOSTNAME: ${TRACKER_HOSTNAME:?set TRACKER_HOSTNAME in .env}
       CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN in .env}
     ports:
-      - "80:80"
-      - "443:443"
+      # 80 and 443 are taken by Pi-hole's web admin on the Pi, so HTTPS is served on 8443.
+      - "8443:8443"
     volumes:
       - caddy_data:/data
       - caddy_config:/config

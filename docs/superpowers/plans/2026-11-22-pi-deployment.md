@@ -15,7 +15,7 @@
 - Hostname is `tracker.daagonzalez.com`; DNS (Cloudflare, already moved) has an `A` record to the Pi's LAN IP, DNS-only. Never expose the app to the internet.
 - No secrets in the repo. `.env` files and the Cloudflare token exist only on the Pi. Templates hold placeholders only.
 - Config fails fast when required variables are missing (`${VAR:?message}` in compose).
-- Only `caddy` publishes host ports (80, 443). `db` and `app` are reachable only on the compose network.
+- Only `caddy` publishes a host port (8443; Pi-hole owns 80/443 on the Pi, ruling made during execution). `db` and `app` are reachable only on the compose network.
 - `TRUST_PROXY=true` on `app` (already supported by `apps/api/src/config.ts`) so client IPs and login rate limiting work behind Caddy.
 - Separate compose project from the user's existing `ui-services`; planner's nginx proxy on port 4200 is untouched.
 - Self-hosted runner label: `tracker-deploy` (full `runs-on`: `[self-hosted, linux, ARM64, tracker-deploy]`).
@@ -193,13 +193,13 @@ Expected: `docker compose ... up -d --build --wait` finishes with `db`, `app`, `
 
 - [ ] **Step 2: Verify HTTPS from a LAN device**
 
-Run (from your laptop): `curl -sS -o /dev/null -w "%{http_code} %{ssl_verify_result}\n" https://tracker.daagonzalez.com/api/health`
+Run (from your laptop): `curl -sS -o /dev/null -w "%{http_code} %{ssl_verify_result}\n" https://tracker.daagonzalez.com:8443/api/health`
 Expected: `200 0` (trusted certificate, no warning). Open the site in a browser and confirm no certificate warning.
 
 - [ ] **Step 3: Verify ports are not over-exposed**
 
 Run (on the Pi): `docker compose -f docker-compose.prod.yml ps --format "{{.Service}} {{.Ports}}"`
-Expected: only `caddy` lists host ports (`0.0.0.0:80`, `0.0.0.0:443`); `db` and `app` list none.
+Expected: only `caddy` lists a host port (`0.0.0.0:8443`); `db` and `app` list none.
 
 - [ ] **Step 4: Create a user and log in**
 
