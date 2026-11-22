@@ -60,7 +60,8 @@ jobs:
           host=$(grep '^TRACKER_HOSTNAME=' .env | cut -d= -f2-)
           # The first deploy needs extra time while Caddy obtains its certificate.
           for _ in $(seq 1 45); do
-            if curl -fsS -o /dev/null "https://$host:8443/api/health"; then
+            # --resolve skips DNS (a router can block private answers for public names) but still verifies the certificate.
+            if curl -fsS -o /dev/null --resolve "$host:8443:127.0.0.1" "https://$host:8443/api/health"; then
               echo "Healthy"
               exit 0
             fi

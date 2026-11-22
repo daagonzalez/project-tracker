@@ -52,6 +52,8 @@ if (errors.length === 0) {
   expect(s.app.environment?.TRUST_PROXY === "true", "app must set TRUST_PROXY=true");
   expect(s.app.environment?.NODE_ENV === "production", "app must set NODE_ENV=production");
   expect(!s.app.depends_on?.db, "app must not depend on a db service");
+  // Host networking would put the app straight on the LAN without any `ports` entry.
+  for (const name of ["app", "caddy"]) expect(!s[name].network_mode, `${name} must not set network_mode (host networking bypasses the port checks)`);
   expect(s.caddy.depends_on?.app?.condition === "service_healthy", "caddy must wait for a healthy app");
   for (const name of ["app", "caddy"]) expect(s[name].restart === "unless-stopped", `${name} must restart unless-stopped`);
 }
@@ -97,10 +99,20 @@ for needle in 'github.event.workflow_run.head_sha' 'git merge --ff-only "$SHA"';
 done
 ok "deploy workflow merges the commit CI verified (workflow_run.head_sha)"
 
+# 7b. The post-deploy health check must not depend on the Pi's DNS: a router that blocks private answers for public
+# names ("DNS rebinding protection") would otherwise fail every deploy of a perfectly healthy app.
+grep -qF -- '--resolve "$host:8443:127.0.0.1"' "$WF" || fail "$WF health check must use curl --resolve so it does not depend on DNS"
+ok "deploy health check resolves the hostname locally (still verifies the certificate)"
+
 # 8. The runbook must name the real control against fork pull requests: GitHub runs the workflow files from the PR's
 # own branch, so nothing in deploy.yml can stop a malicious PR from targeting the self-hosted runner.
 grep -qF "Require approval for all outside collaborators" docs/deploy-pi.md ||
   fail "docs/deploy-pi.md must tell the reader to require approval for all outside collaborators' workflow runs"
 ok "runbook names the approval setting as the control for fork pull requests"
+
+# 9. Pitfalls the runbook must warn about.
+grep -qF "dubious ownership" docs/deploy-pi.md || fail "docs/deploy-pi.md must say the runner user must own the clone (git 'dubious ownership')"
+grep -qF "ufw" docs/deploy-pi.md || fail "docs/deploy-pi.md must warn that Docker-published ports bypass ufw"
+ok "runbook covers clone ownership and the ufw/IPv6 caveat"
 
 echo "All deploy checks passed."

@@ -18,6 +18,8 @@ sudo ss -tlnp | grep -E ':8443\s'
 
 This should print nothing. If something owns it, stop and pick another port (it appears in `docker-compose.prod.yml`, `deploy/caddy/Caddyfile` and `deploy.yml`).
 
+Docker publishes ports by adding its own firewall rules, which bypass `ufw`, and it binds on IPv6 (`[::]`) as well as IPv4. Behind a normal home router that is harmless. If the Pi has a global IPv6 address and your router allows inbound IPv6, port 8443 would be reachable from the internet, so check the router's IPv6 firewall.
+
 ## 3. Prepare the database on your existing Postgres server
 
 Needs Postgres 13 or newer (the schema uses the built-in `gen_random_uuid()`, so no extensions are required). Create a dedicated role and database rather than reusing an admin account. Run as an admin on that server:
@@ -49,7 +51,7 @@ nano .env   # set DATABASE_URL and CLOUDFLARE_API_TOKEN; check TRACKER_HOSTNAME
 
 ## 5. Register the self-hosted runner
 
-GitHub repo, then Settings, Actions, Runners, New self-hosted runner. Choose Linux and ARM64, follow the commands GitHub shows, and give the runner the extra label `tracker-deploy` when `./config.sh` asks. Install it as a service:
+GitHub repo, then Settings, Actions, Runners, New self-hosted runner. Choose Linux and ARM64, follow the commands GitHub shows, and give the runner the extra label `tracker-deploy` when `./config.sh` asks. The runner service must run as the user who owns the clone in `/home/dgonz/project-tracker` (`sudo ./svc.sh install dgonz`). Otherwise `git` refuses to touch the checkout with "detected dubious ownership" and every deploy fails at the first step. Install it as a service:
 
 ```bash
 sudo ./svc.sh install
