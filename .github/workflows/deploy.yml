@@ -1,0 +1,72 @@
+name: Deploy
+
+# Runs on the self-hosted runner on the Raspberry Pi, after CI passes on main.
+# Deliberately has no pull_request trigger and no checkout step: this repo is public and the runner is a
+# machine on the home network, so only code already merged to main may ever run here.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once, and don't cancel one that is mid-build.
+concurrency:
+  group: deploy-project-tracker
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REPO_DIR: /home/dgonz/project-tracker
+
+jobs:
+  deploy:
+    # Only deploy when CI succeeded on a push to main (or when run manually).
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: [self-hosted, linux, ARM64, tracker-deploy]
+    # Vite and esbuild builds are slow on a Pi.
+    timeout-minutes: 30
+    steps:
+      - name: Update source
+        run: |
+          cd "$REPO_DIR"
+          git fetch origin main
+          git checkout main
+          git merge --ff-only origin/main
+          git log -1 --oneline
+
+      - name: Build and restart
+        run: |
+          cd "$REPO_DIR"
+          # --wait blocks until every container's healthcheck passes and fails the step if one never does.
+          docker compose -f docker-compose.prod.yml up -d --build --wait --wait-timeout 180
+
+      - name: Health check through Caddy
+        run: |
+          cd "$REPO_DIR"
+          host=$(grep '^TRACKER_HOSTNAME=' .env | cut -d= -f2-)
+          # The first deploy needs extra time while Caddy obtains its certificate.
+          for _ in $(seq 1 45); do
+            if curl -fsS -o /dev/null "https://$host/api/health"; then
+              echo "Healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App did not respond over HTTPS at $host"
+          exit 1
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          cd "$REPO_DIR"
+          docker compose -f docker-compose.prod.yml ps
+          docker compose -f docker-compose.prod.yml logs --tail=80 app caddy
+
+      - name: Prune old images
+        run: docker image prune -f

@@ -68,4 +68,16 @@ ok "caddy image builds and Caddyfile validates"
 grep -q "resolvers 1.1.1.1" deploy/caddy/Caddyfile || fail "Caddyfile must set 'resolvers 1.1.1.1'"
 ok "caddy uses 1.1.1.1 for DNS-01 propagation checks"
 
+# 6. The deploy workflow is valid and cannot be triggered by pull requests (the repo is public, the runner is the Pi).
+WF=.github/workflows/deploy.yml
+[ -f "$WF" ] || fail "$WF does not exist"
+docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color "$WF" >"$WORK/actionlint.out" 2>&1 ||
+  { cat "$WORK/actionlint.out" >&2; fail "actionlint reports problems in $WF"; }
+ok "actionlint clean"
+! grep -v '^[[:space:]]*#' "$WF" | grep -q "pull_request" || fail "$WF must not have a pull_request trigger"
+for needle in "workflow_run" "workflow_dispatch" "tracker-deploy" "github.event.workflow_run.event == 'push'" "cancel-in-progress: false"; do
+  grep -qF "$needle" "$WF" || fail "$WF must contain: $needle"
+done
+ok "deploy workflow triggers only from push-to-main CI success or manual dispatch, on the tracker-deploy runner"
+
 echo "All deploy checks passed."

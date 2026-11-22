@@ -1,0 +1,4 @@
+# Custom labels of the self-hosted runner on the Raspberry Pi (see docs/deploy-pi.md).
+self-hosted-runner:
+  labels:
+    - tracker-deploy
