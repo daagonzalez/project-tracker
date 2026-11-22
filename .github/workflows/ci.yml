@@ -81,6 +81,13 @@ jobs:
           node-version: 26
       - run: npm audit --audit-level=high
 
+  # Validates the Raspberry Pi deployment config (compose shape, fail-fast secrets, Caddy image and Caddyfile).
+  deploy-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: bash scripts/validate-deploy.sh
+
   # Builds the production image, then actually starts it against Postgres: a successful build alone
   # would not catch a runtime break (e.g. a native module failing to load on a new Node version).
   docker-build:

@@ -1,0 +1,10 @@
+# Port 8443 because Pi-hole owns 80 and 443 on the Pi. The certificate is still issued via the DNS challenge,
+# which needs neither port. Nothing listens on 80 from the host, so there is no HTTP redirect.
+{$TRACKER_HOSTNAME}:8443 {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+		# Check the challenge record against a public resolver; the Pi's own resolver may not see it.
+		resolvers 1.1.1.1
+	}
+	reverse_proxy app:3000
+}

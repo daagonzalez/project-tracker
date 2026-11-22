@@ -58,6 +58,11 @@ npm run lint && npm run typecheck
 
 CI runs lint, both suites, `npm audit` and a Docker build as separate jobs.
 
+## Deployment
+
+Merges to `main` deploy automatically to a Raspberry Pi behind HTTPS. See
+[docs/deploy-pi.md](docs/deploy-pi.md) for the one-time setup.
+
 ## Design decisions
 
 - **Server-side sessions, not JWTs.** A session row in Postgres (token stored hashed) behind an
